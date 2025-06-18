@@ -27,9 +27,9 @@ public class WidgetUtilities {
 
         /**
          * Creates a FilterWidgetGroup object with a checkbox
-         * @param checkboxText
-         * @param placeholderText
-         * @param textFieldColumns
+         * @param checkboxText The checkbox's display name
+         * @param placeholderText The textfield's placeholder text
+         * @param textFieldColumns The textfield's display width, in characters.
          */
         public FilterWidgetGroup(String checkboxText, String placeholderText, int textFieldColumns) {
             this.placeholder = placeholderText;

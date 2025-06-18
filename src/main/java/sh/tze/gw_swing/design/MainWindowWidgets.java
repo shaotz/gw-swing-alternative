@@ -17,7 +17,7 @@ public class MainWindowWidgets {
     }
 
     //<editor-fold desc="Flattened tree definition Side L: Section Above(A)">
-    public static JPanel initMWPanelSectA(){
+    private static JPanel initMWPanelSectA(){
         JPanel sect = new JPanel(new GridLayout(3,1));
 
 //        GridLayout gl = new GridLayout(3,1);
@@ -26,7 +26,7 @@ public class MainWindowWidgets {
         return sect;
     }
 
-    public static JPanel initURLSelectorPanel(){
+    private static JPanel initURLSelectorPanel(){
         JPanel container = new JPanel(new BorderLayout());
 
         // Def Enclosed Items
@@ -56,7 +56,7 @@ public class MainWindowWidgets {
 
 
     //<editor-fold desc="Flattened tree definition Side R: Section Below(B)">
-    public static JPanel initMWPanelSectB() {
+    private static JPanel initMWPanelSectB() {
         JPanel sect = new JPanel(new BorderLayout());
 
         sect.add(initPrimaryTextDisplay(), BorderLayout.CENTER);
@@ -64,7 +64,7 @@ public class MainWindowWidgets {
         return sect;
     }
 
-    public static JPanel initPrimaryTextDisplay(){
+    private static JPanel initPrimaryTextDisplay(){
         JPanel panel = new JPanel(new BorderLayout());
 
         JTextArea mainTextArea = new JTextArea();
@@ -76,7 +76,7 @@ public class MainWindowWidgets {
         return panel;
     }
 
-    public static JPanel initFunctionControlPanel(){
+    private static JPanel initFunctionControlPanel(){
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this
 
@@ -120,20 +120,29 @@ public class MainWindowWidgets {
         return panel;
     }
 
-    public static JPanel initFilterSection() {
-        JPanel section = new JPanel(new BorderLayout());
+    private static JPanel initFilterSection() {
+        JPanel section = new JPanel(); // removed a confusing declaration
+        JPanel keywordFilterPanel = new JPanel();
+        JPanel adjustmentPanel = new JPanel(); //TODO
 
-        JPanel filtersPanel = new JPanel();
-        filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
+        keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
-        WidgetUtilities.FilterWidgetGroup searchFilter = new WidgetUtilities.FilterWidgetGroup("Search", "Enter search terms...");
-        WidgetUtilities.FilterWidgetGroup categoryFilter = new WidgetUtilities.FilterWidgetGroup("Category", "Select category...");
+        WidgetUtilities.FilterWidgetGroup fulltextFilter = new WidgetUtilities.FilterWidgetGroup("Search", "Search in full text...");
+        WidgetUtilities.FilterWidgetGroup posFilter = new WidgetUtilities.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
+        WidgetUtilities.FilterWidgetGroup lemmaFilter = new WidgetUtilities.FilterWidgetGroup("Lemma", "Filter for lemma...");
 
-        filtersPanel.add(searchFilter);
-        filtersPanel.add(categoryFilter);
+        keywordFilterPanel.add(fulltextFilter);
+        keywordFilterPanel.add(posFilter);
+        keywordFilterPanel.add(lemmaFilter);
 
-        section.add(filtersPanel, BorderLayout.NORTH);
+        section.add(keywordFilterPanel, BorderLayout.NORTH);
         return section;
+    }
+
+    private static JPanel initInfoPanel(){
+        JPanel infoPanel = new JPanel(new BorderLayout());
+
+        return infoPanel;
     }
 
     //</editor-fold>
