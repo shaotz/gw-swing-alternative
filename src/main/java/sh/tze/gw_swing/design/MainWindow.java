@@ -44,7 +44,8 @@ public class MainWindow {
     private static JFrame createFrame(){
         JFrame frame = new JFrame(ProgramUI.DISPLAY_NAME);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(ProgramUI.DEFAULT_WIDTH, ProgramUI.DEFAULT_HEIGHT);
+        Dimension d = new Dimension(ProgramUI.DEFAULT_WIDTH, ProgramUI.DEFAULT_HEIGHT);
+        frame.setPreferredSize(d);
         return frame;
     }
 
