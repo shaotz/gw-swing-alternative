@@ -18,6 +18,7 @@ public class MainWindow {
         // toolbar for L&F
         WidgetUtilities.LookAndFeelSelectorGroup lookAndFeelSelector = new WidgetUtilities.LookAndFeelSelectorGroup(frame);
         // optional listener to handle L&F changes
+        // TODO: maybe don't hook selector change, or somehow filter the garbage output
         lookAndFeelSelector.addChangeListener(e -> {
             System.out.println("Look and Feel changed: " +
                     lookAndFeelSelector.getCurrentLookAndFeelName());

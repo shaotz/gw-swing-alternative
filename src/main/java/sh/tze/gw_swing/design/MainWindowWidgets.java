@@ -60,7 +60,7 @@ public class MainWindowWidgets {
         JPanel sect = new JPanel(new BorderLayout());
 
         sect.add(initPrimaryTextDisplay(), BorderLayout.CENTER);
-        sect.add(initFilterSection(), BorderLayout.EAST);
+        sect.add(initFunctionControlPanel(), BorderLayout.EAST);
         return sect;
     }
 
@@ -77,21 +77,35 @@ public class MainWindowWidgets {
     }
 
     public static JPanel initFunctionControlPanel(){
-        JPanel panel = new JPanel(new GridLayout(0,1));
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this
 
-        // child widgets/widget-groups
-        JPanel filterPanel = initFilterSection();
-        JPanel infoPanel = new JPanel(new GridLayout(0,1));
+//        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
         JButton filterActionButton = new JButton("Filter");
         JButton filterResetButton = new JButton("Reset");
         JButton masterSaveButton = new JButton("Save");
 
-        // positioning children(sounds like a baddie)
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0.0; // Don't expand the button panel
+        buttonPanel.add(filterActionButton);
+        buttonPanel.add(filterResetButton);
+
+        // child widgets/widget-groups
+        JPanel filterPanel = initFilterSection();
+        JPanel infoPanel = new JPanel();
+
+        // add components with optional spacing
         panel.add(filterPanel);
-        panel.add(filterActionButton);
-        panel.add(filterResetButton);
+//        panel.add(Box.createVerticalStrut(5));
+        panel.add(buttonPanel, gbc);
+//        panel.add(Box.createVerticalStrut(5));
         panel.add(infoPanel);
+        panel.add(Box.createVerticalStrut(5));
         panel.add(masterSaveButton);
+
         return panel;
     }
 
