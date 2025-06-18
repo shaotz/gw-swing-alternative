@@ -86,10 +86,10 @@ public class MainWindowWidgets {
         JButton filterResetButton = new JButton("Reset");
         JButton masterSaveButton = new JButton("Save");
 
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 5));
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weighty = 0.0; // Don't expand the button panel
+        gbc.weighty = 0.0; // not allowing buttons to v-expand
         buttonPanel.add(filterActionButton);
         buttonPanel.add(filterResetButton);
 
@@ -97,14 +97,25 @@ public class MainWindowWidgets {
         JPanel filterPanel = initFilterSection();
         JPanel infoPanel = new JPanel();
 
-        // add components with optional spacing
-        panel.add(filterPanel);
-//        panel.add(Box.createVerticalStrut(5));
+        // Starting adding components
+        panel.add(filterPanel); //omitting constraints seems ok
         panel.add(buttonPanel, gbc);
-//        panel.add(Box.createVerticalStrut(5));
-        panel.add(infoPanel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(masterSaveButton);
+        // Info panel
+        gbc.gridx = 0;
+        gbc.gridy = 2; // 3rd row
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0; // Takes extra vertical space
+        gbc.insets = new Insets(5, 5, 5, 5);
+        panel.add(infoPanel, gbc);
+        // Master Save Button
+        gbc.gridx = 0;
+        gbc.gridy = 3; // 4th row
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.0;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        panel.add(masterSaveButton, gbc);
 
         return panel;
     }
