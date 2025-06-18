@@ -15,16 +15,27 @@ public class MainWindow {
 
         frame.getContentPane().setBackground(Color.LIGHT_GRAY);
 
-        try {
-            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if (ProgramUI.UI_STYLE.equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            // If Nimbus is not available, fall back to default.
-        }
+        // toolbar for L&F
+        WidgetUtilities.LookAndFeelSelectorGroup lookAndFeelSelector = new WidgetUtilities.LookAndFeelSelectorGroup(frame);
+        // optional listener to handle L&F changes
+        lookAndFeelSelector.addChangeListener(e -> {
+            System.out.println("Look and Feel changed: " +
+                    lookAndFeelSelector.getCurrentLookAndFeelName());
+        });
+        JToolBar toolbar = new JToolBar();
+        toolbar.add(lookAndFeelSelector);
+        frame.add(toolbar, BorderLayout.NORTH);
+
+//        try {
+//            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+//                if (ProgramUI.UI_STYLE.equals(info.getName())) {
+//                    UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (Exception e) {
+//            // If desired LookAndFeel is not available, fall back to default.
+//        }
 
         frame.setVisible(true);
     }
