@@ -95,11 +95,17 @@ public class MainWindowWidgets {
 
         // child widgets/widget-groups
         JPanel filterPanel = initFilterSection();
-        JPanel infoPanel = new JPanel();
+        JPanel infoPanel = initInfoPanel();
 
         // Starting adding components
-        panel.add(filterPanel); //omitting constraints seems ok
         panel.add(buttonPanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.0; // Don't expand vertically
+        gbc.insets = new Insets(5, 5, 5, 5);
+        panel.add(filterPanel,gbc); //omitting constraints is not okay now
         // Info panel
         gbc.gridx = 0;
         gbc.gridy = 2; // 3rd row
@@ -135,12 +141,19 @@ public class MainWindowWidgets {
         keywordFilterPanel.add(posFilter);
         keywordFilterPanel.add(lemmaFilter);
 
-        section.add(keywordFilterPanel, BorderLayout.NORTH);
+        section.add(keywordFilterPanel); // also fixed correspondingly
         return section;
     }
 
     private static JPanel initInfoPanel(){
-        JPanel infoPanel = new JPanel(new BorderLayout());
+        JPanel infoPanel = new JPanel();
+
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet, ...", ""};
+        JScrollPane listSP1 = new JScrollPane(new WidgetUtilities.TextListDisplay<>(loremipsum));
+        JScrollPane listSP2 = new JScrollPane(new WidgetUtilities.TextListDisplay<>(loremipsum.clone()));
+        infoPanel.add(listSP1);
+        infoPanel.add(listSP2);
 
         return infoPanel;
     }
