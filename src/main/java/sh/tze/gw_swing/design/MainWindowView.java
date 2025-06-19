@@ -3,7 +3,7 @@ package sh.tze.gw_swing.design;
 import javax.swing.*;
 import java.awt.*;
 
-public class MainWindowWidgets {
+public class MainWindowView {
     public static JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());
 
@@ -78,6 +78,7 @@ public class MainWindowWidgets {
 
     private static JPanel initFunctionControlPanel(){
         JPanel panel = new JPanel(new GridBagLayout());
+        // Will just operate on constraint buffer `gbc`
         GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this
 
 //        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -90,6 +91,7 @@ public class MainWindowWidgets {
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weighty = 0.0; // not allowing buttons to v-expand
+        gbc.insets = new Insets(5, 5, 5, 5);
         buttonPanel.add(filterActionButton);
         buttonPanel.add(filterResetButton);
 
@@ -133,9 +135,9 @@ public class MainWindowWidgets {
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
-        WidgetUtilities.FilterWidgetGroup fulltextFilter = new WidgetUtilities.FilterWidgetGroup("Search", "Search in full text...");
-        WidgetUtilities.FilterWidgetGroup posFilter = new WidgetUtilities.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
-        WidgetUtilities.FilterWidgetGroup lemmaFilter = new WidgetUtilities.FilterWidgetGroup("Lemma", "Filter for lemma...");
+        Widgets.FilterWidgetGroup fulltextFilter = new Widgets.FilterWidgetGroup("Search", "Search in full text...");
+        Widgets.FilterWidgetGroup posFilter = new Widgets.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
+        Widgets.FilterWidgetGroup lemmaFilter = new Widgets.FilterWidgetGroup("Lemma", "Filter for lemma...");
 
         keywordFilterPanel.add(fulltextFilter);
         keywordFilterPanel.add(posFilter);
@@ -150,8 +152,8 @@ public class MainWindowWidgets {
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet, ...", ""};
-        JScrollPane listSP1 = new JScrollPane(new WidgetUtilities.TextListDisplay<>(loremipsum));
-        JScrollPane listSP2 = new JScrollPane(new WidgetUtilities.TextListDisplay<>(loremipsum.clone()));
+        JScrollPane listSP1 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum));
+        JScrollPane listSP2 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum.clone()));
         infoPanel.add(listSP1);
         infoPanel.add(listSP2);
 

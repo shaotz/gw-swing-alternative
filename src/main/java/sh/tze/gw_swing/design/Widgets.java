@@ -1,12 +1,17 @@
 package sh.tze.gw_swing.design;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.event.ActionListener;
+// to prevent awt.* from masking util.List with awt.List
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
+import java.util.function.Function;
 
-public class WidgetUtilities {
+public class Widgets {
     public static class FilterWidgetGroup extends JPanel {
         private JCheckBox filterCheckBox;
         private JTextField filterTextField;
@@ -505,6 +510,50 @@ public class WidgetUtilities {
         }
 
         //</editor-fold>
+
+    }
+
+    public static class SuggestionTextField extends JTextField{
+        private JTextField textField;
+        private JPopupMenu popupMenu;
+        private JList<String> suggestionsCandidates;
+
+        private DefaultListModel<String> suggestionsModel;
+        private Function<String, java.util.List<String>> suggestionProvider;
+
+        private final boolean wordBased = true;
+        private static final int DEFAULT_TEXT_FIELD_COLUMNS = 20;
+        private final LayoutManager layoutManager = new BorderLayout();
+
+        private ArrayList<ActionListener> selectionListeners = new ArrayList<>();
+        private ArrayList<DocumentListener> textChangeListeners = new ArrayList<>();
+
+        public SuggestionTextField(DefaultListModel<String> suggestionsModel, Function<String, List<String>> suggestionProvider, int columns) {
+
+            this.suggestionProvider = suggestionProvider;
+            this.suggestionsModel = suggestionsModel;
+
+            initComponents(columns);
+            registerComponents();
+            setLayout(layoutManager);
+
+        }
+
+        private void initComponents(int columns){
+            textField = new JTextField(columns);
+            popupMenu = new JPopupMenu();
+
+            popupMenu.setBorderPainted(true);
+            popupMenu.setOpaque(true);
+            popupMenu.setFocusable(true);
+            popupMenu.setVisible(false);
+        }
+        private void registerComponents(){
+            add(textField);
+            add(popupMenu);
+        }
+
+
 
     }
 

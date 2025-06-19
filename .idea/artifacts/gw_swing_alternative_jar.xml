@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="gw-swing-alternative:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/gw_swing_alternative_jar</output-path>
+    <root id="archive" name="gw-swing-alternative.jar">
+      <element id="module-output" name="gw-swing-alternative" />
+    </root>
+  </artifact>
+</component>

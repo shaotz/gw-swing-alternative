@@ -1,22 +1,21 @@
-package sh.tze.gw_swing.design;
+package sh.tze.gw_swing;
 
-import sh.tze.gw_swing.ProgramUI;
+import sh.tze.gw_swing.design.MainWindowView;
+import sh.tze.gw_swing.design.Widgets;
 
 import javax.swing.*;
 import java.awt.*;
 
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 
 public class MainWindow {
     public static void main(String[] args) {
         JFrame frame = createFrame();
-        frame.add(MainWindowWidgets.initMainWindowPanel());
+        frame.add(MainWindowView.initMainWindowPanel());
 
         frame.getContentPane().setBackground(Color.LIGHT_GRAY);
 
         // toolbar for L&F
-        WidgetUtilities.LookAndFeelSelectorGroup lookAndFeelSelector = new WidgetUtilities.LookAndFeelSelectorGroup(frame);
+        Widgets.LookAndFeelSelectorGroup lookAndFeelSelector = new Widgets.LookAndFeelSelectorGroup(frame);
         // optional listener to handle L&F changes
         // TODO: maybe don't hook selector change, or somehow filter the garbage output
         lookAndFeelSelector.addChangeListener(e -> {
@@ -27,16 +26,6 @@ public class MainWindow {
         toolbar.add(lookAndFeelSelector);
         frame.add(toolbar, BorderLayout.NORTH);
 
-//        try {
-//            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-//                if (ProgramUI.UI_STYLE.equals(info.getName())) {
-//                    UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        } catch (Exception e) {
-//            // If desired LookAndFeel is not available, fall back to default.
-//        }
 
         frame.setVisible(true);
     }
