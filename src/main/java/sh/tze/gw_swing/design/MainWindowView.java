@@ -2,11 +2,12 @@ package sh.tze.gw_swing.design;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class MainWindowView {
     public static JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());
-
+        MWPanel.setName("RootPanel");
         JPanel MWPanelSectionA = initMWPanelSectA();
         JPanel MWPanelSectionB = initMWPanelSectB();
 
@@ -20,7 +21,6 @@ public class MainWindowView {
     private static JPanel initMWPanelSectA(){
         JPanel sect = new JPanel(new GridLayout(3,1));
 
-//        GridLayout gl = new GridLayout(3,1);
 
         sect.add(initURLSelectorPanel());
         return sect;
@@ -135,11 +135,13 @@ public class MainWindowView {
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
-        Widgets.FilterWidgetGroup fulltextFilter = new Widgets.FilterWidgetGroup("Search", "Search in full text...");
+        Widgets.FilterWidgetGroup wordFilter = new Widgets.FilterWidgetGroup("Word", "Search word in full text...");
         Widgets.FilterWidgetGroup posFilter = new Widgets.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
         Widgets.FilterWidgetGroup lemmaFilter = new Widgets.FilterWidgetGroup("Lemma", "Filter for lemma...");
 
-        keywordFilterPanel.add(fulltextFilter);
+        Widgets.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
+                new SuggestionAdapter.TextSuggestionProvider(SuggestionAdapter::getSuggestions));
+        keywordFilterPanel.add(wordFilter);
         keywordFilterPanel.add(posFilter);
         keywordFilterPanel.add(lemmaFilter);
 
