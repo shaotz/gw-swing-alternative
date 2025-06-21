@@ -19,11 +19,48 @@ public class MainWindowView {
 
     //<editor-fold desc="Flattened tree definition Side L: Section Above(A)">
     private static JPanel initMWPanelSectA(){
-        JPanel sect = new JPanel(new GridLayout(3,1));
 
+//      JPanel sect = new JPanel(new GridLayout(2,3));
+        Color color = new Color(0xF6, 0xC9, 0xCC);
 
-        sect.add(initURLSelectorPanel());
-        return sect;
+        JPanel container = new JPanel(new BorderLayout());
+        container.setBackground(color);
+
+        JRadioButton selectCaseButton = new JRadioButton("Case Sensitive");
+        JRadioButton wholeSentenceButton = new JRadioButton("Whole Sentence");
+        JRadioButton numOfNeighbors = new JRadioButton("# of Neighbor Words");
+
+        JPanel neighborPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        neighborPanel.setBackground(color);
+        // Left input
+        JLabel leftNum = new JLabel("Left:");
+        JTextField leftTextField = new JTextField(5); // 5 columns width
+
+        // Right input
+        JLabel rightNum = new JLabel("Right:");
+        JTextField rightTextField = new JTextField(5); // 5 columns width
+
+        // Add components to neighbor panel
+        neighborPanel.add(numOfNeighbors);
+        neighborPanel.add(Box.createHorizontalStrut(5)); // Add spacing
+        neighborPanel.add(leftNum);
+        neighborPanel.add(leftTextField);
+        neighborPanel.add(Box.createHorizontalStrut(5)); // Add spacing
+        neighborPanel.add(rightNum);
+        neighborPanel.add(rightTextField);
+
+//        GridLayout gl = new GridLayout(1,1);
+//        panel for the center components
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        centerPanel.add(wholeSentenceButton);
+        centerPanel.add(numOfNeighbors);
+        centerPanel.add(neighborPanel);
+
+        container.add(initURLSelectorPanel(), BorderLayout.NORTH);
+        container.add(selectCaseButton, BorderLayout.WEST);
+        container.add(centerPanel, BorderLayout.CENTER);
+
+        return container;
     }
 
     private static JPanel initURLSelectorPanel(){
@@ -33,8 +70,8 @@ public class MainWindowView {
         JTextField urlTextField = new JTextField(10);
         JButton urlActionButton = new JButton("Open");
 
-        JRadioButton urlDestSelLo = new JRadioButton("Local");
-        JRadioButton urlDestSelRe = new JRadioButton("Remote");
+        JRadioButton urlDestSelLo = new JRadioButton("Local File");
+        JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
         ButtonGroup urlDestSelGroup = new ButtonGroup();
         urlDestSelGroup.add(urlDestSelLo);
         urlDestSelGroup.add(urlDestSelRe);
@@ -79,13 +116,13 @@ public class MainWindowView {
     private static JPanel initFunctionControlPanel(){
         JPanel panel = new JPanel(new GridBagLayout());
         // Will just operate on constraint buffer `gbc`
-        GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this
+        GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this LOL
 
 //        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JButton filterActionButton = new JButton("Filter");
         JButton filterResetButton = new JButton("Reset");
-        JButton masterSaveButton = new JButton("Save");
+        JButton masterSaveButton = new JButton("Save as XML");
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 5));
         gbc.gridy = 1;
