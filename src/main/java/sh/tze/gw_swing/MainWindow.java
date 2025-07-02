@@ -1,7 +1,7 @@
 package sh.tze.gw_swing;
 
-import sh.tze.gw_swing.design.MainWindowView;
-import sh.tze.gw_swing.design.Widgets;
+import sh.tze.gw_swing.design.UI.MainWindowView;
+import sh.tze.gw_swing.design.UI.Widgets;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,8 +1,11 @@
-package sh.tze.gw_swing.design;
+package sh.tze.gw_swing.design.UI;
+
+import sh.tze.gw_swing.design.SuggestionAdapter.Decorator;
+import sh.tze.gw_swing.design.SuggestionAdapter.Provider;
+import sh.tze.gw_swing.design.Handler.Suggestion;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class MainWindowView {
     public static JPanel initMainWindowPanel() {
@@ -69,9 +72,18 @@ public class MainWindowView {
         // Def Enclosed Items
         JTextField urlTextField = new JTextField(10);
         JButton urlActionButton = new JButton("Open");
+        urlActionButton.addActionListener(e -> {
+                    String url = urlTextField.getText();
+                    //TODO
+                    Suggestion.HistoryUpdateHandler.recordOn(urlTextField);
+                }
+        );
 
         JRadioButton urlDestSelLo = new JRadioButton("Local File");
         JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
+        var historyProvider = new Provider.TextHistorySuggestionProvider();
+        Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
+                historyProvider);
         ButtonGroup urlDestSelGroup = new ButtonGroup();
         urlDestSelGroup.add(urlDestSelLo);
         urlDestSelGroup.add(urlDestSelRe);
@@ -176,8 +188,14 @@ public class MainWindowView {
         Widgets.FilterWidgetGroup posFilter = new Widgets.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
         Widgets.FilterWidgetGroup lemmaFilter = new Widgets.FilterWidgetGroup("Lemma", "Filter for lemma...");
 
-        Widgets.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
-                new SuggestionAdapter.TextSuggestionProvider(SuggestionAdapter::getSuggestions));
+
+        Decorator.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
+                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+        Decorator.TextSuggestionDecorator.doDecorationOn(posFilter.getTextField(),
+                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+        Decorator.TextSuggestionDecorator.doDecorationOn(lemmaFilter.getTextField(),
+                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+
         keywordFilterPanel.add(wordFilter);
         keywordFilterPanel.add(posFilter);
         keywordFilterPanel.add(lemmaFilter);
@@ -190,7 +208,7 @@ public class MainWindowView {
         JPanel infoPanel = new JPanel();
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet, ...", ""};
+        String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet","...", "", "Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet",};
         JScrollPane listSP1 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum));
         JScrollPane listSP2 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum.clone()));
         infoPanel.add(listSP1);
