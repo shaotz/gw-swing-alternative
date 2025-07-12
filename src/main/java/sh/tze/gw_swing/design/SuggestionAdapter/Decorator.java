@@ -77,40 +77,35 @@ public class Decorator {
         // (mouse clicks should be accepted as well but needs some research)
         // this means to create key listener on the decorated object
         private void initHooks(){
+
             invoker.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     switch (e.getKeyCode()) {
-
                         case KeyEvent.VK_ENTER:
-//                            if(suggestionProvider instanceof TextHistorySuggestionProvider){}
                             if(!popupMenu.isShowing())break;
                             confirmSelection();
-                            e.consume();
                             break;
                         case KeyEvent.VK_ESCAPE:
                             popupMenu.setVisible(false);
-                            e.consume();
                             break;
                         // fallthrough to accepts Keyboard&Keypad arrow keys
                         case KeyEvent.VK_LEFT: case KeyEvent.VK_KP_LEFT: case KeyEvent.VK_RIGHT: case KeyEvent.VK_KP_RIGHT:
                             // in the case of left/right arrow, the caret was repositioned,
                             // and it is arguable whether to re-generate suggestions on the partial input
                             popupMenu.setVisible(true);
-                            e.consume();
                             break;
                         case KeyEvent.VK_UP: case KeyEvent.VK_KP_UP:
                             if (candidateList.getSelectedIndex() - 1 > 0)
                                 // targetIndex mod size to prevent overflow: thanks autocompletion, you've finally provided something insightful
                                 candidateList.setSelectedIndex(candidateList.getSelectedIndex() - 1 % candidateList.getModel().getSize());
-                            e.consume();
                             break;
                         case KeyEvent.VK_DOWN: case KeyEvent.VK_KP_DOWN:
                             if(candidateList.getSelectedIndex() + 1 < candidateListModel.getSize())
                                 candidateList.setSelectedIndex((candidateList.getSelectedIndex() + 1) % candidateListModel.getSize());
-                            e.consume();
                             break;
                     }
+                    e.consume();
 
                 }
             });

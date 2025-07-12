@@ -9,6 +9,11 @@ import java.awt.*;
 
 public class MainWindow {
     public static void main(String[] args) {
+        runUIThread();
+    }
+
+
+    protected static void runUIThread(){
         JFrame frame = createFrame();
         frame.add(MainWindowView.initMainWindowPanel());
 
@@ -29,8 +34,6 @@ public class MainWindow {
 
         frame.setVisible(true);
     }
-
-
     private static JFrame createFrame(){
         JFrame frame = new JFrame(ProgramUI.DISPLAY_NAME);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
