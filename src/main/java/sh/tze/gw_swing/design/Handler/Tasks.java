@@ -2,8 +2,9 @@ package sh.tze.gw_swing.design.Handler;
 
 import java.util.Optional;
 import java.util.UUID;
+import sh.tze.gw_swing.design.DataRepresentation;
 
-public class ResourceAdapter {
+public class Tasks {
     public static final String CRAWLER_TYPE = "CRAWLER";
     public static final String ANALYZER_TYPE = "ANALYZER";
 
@@ -20,7 +21,8 @@ public class ResourceAdapter {
         protected String taskID;
         protected final String url;
         protected String result;
-        protected boolean completed;
+        protected boolean completed = false;
+
         public Crawler(String url) {
             taskID = UUID.randomUUID().toString();
             this.url = url;
@@ -29,11 +31,39 @@ public class ResourceAdapter {
 
     }
 
-    private abstract class Analyzer implements RunnableTask {
-        public final String toAnalyze;
-        public String result;
+    private static abstract class Analyzer implements RunnableTask {
+        protected final String taskType = ANALYZER_TYPE;
+        protected String taskId;
+        protected final String toAnalyze;
+        protected String result;
+        protected boolean completed;
+        protected DataRepresentation.Analysis analysis; // To store processed results
+
         public Analyzer(String toAnalyze) {
+            this.taskId = UUID.randomUUID().toString();
             this.toAnalyze = toAnalyze;
+            this.completed = false;
+            this.result = "";
+            this.analysis = new DataRepresentation.Analysis(""); // Initialize with empty source (set later if needed)
+        }
+
+        @Override
+        public String getTaskType() {
+            return taskType;
+        }
+
+        @Override
+        public boolean hasCompleted() {
+            return completed;
+        }
+
+        @Override
+        public Optional<String> getResult() {
+            return completed ? Optional.of(result) : Optional.empty();
+        }
+
+        public DataRepresentation.Analysis getAnalysis() {
+            return analysis;
         }
     }
 
@@ -77,14 +107,31 @@ public class ResourceAdapter {
         }
     }
 
-    public abstract class NLPAnalyzer extends Analyzer { //TODO declared abstract to suppress warning
+    public static class NLPAnalyzer extends Analyzer {
         public NLPAnalyzer(String toAnalyze) {
             super(toAnalyze);
         }
         @Override
         public void run() {
-            //TODO
+            try {
+                // Placeholder for NLP processing logic
+                for (int i = 0; i < 10; i++) { // Simulate loop
+                    if (Thread.currentThread().isInterrupted()) {
+                        result = "Task interrupted";
+                        completed = true;
+                        return;
+                    }
+                    Thread.sleep(100); // Smaller sleeps to check interruption more frequently
+                }
+                result = "NLP Analysis of: " + toAnalyze;
+                completed = true;
+            } catch (InterruptedException e) {
+                result = "Error during NLP analysis: " + e.getMessage();
+                completed = true;
+                Thread.currentThread().interrupt(); // Restore interrupt flag
+            }
         }
+
     }
 
 }

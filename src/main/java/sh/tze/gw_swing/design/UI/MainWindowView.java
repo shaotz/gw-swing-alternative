@@ -3,11 +3,19 @@ package sh.tze.gw_swing.design.UI;
 import sh.tze.gw_swing.design.SuggestionAdapter.Decorator;
 import sh.tze.gw_swing.design.SuggestionAdapter.Provider;
 import sh.tze.gw_swing.design.Handler.Suggestion;
+import sh.tze.gw_swing.design.WorkflowController;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class MainWindowView {
+    private static JTextField urlTextField;
+    private static TextDisplayPanel textDisplayPanel;
+    private static JLabel statusLabel;
+    private static JProgressBar progressBar;
+    private static WorkflowController workflowController;
+//    private static UIUpdateHandler uiHandler;
+
     public static JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());
         MWPanel.setName("RootPanel");
@@ -16,6 +24,8 @@ public class MainWindowView {
 
         MWPanel.add(MWPanelSectionA,BorderLayout.NORTH);
         MWPanel.add(MWPanelSectionB,BorderLayout.CENTER);
+
+        workflowController = WorkflowController.getInstance();
 
         return MWPanel;
     }
@@ -70,14 +80,15 @@ public class MainWindowView {
         JPanel container = new JPanel(new BorderLayout());
 
         // Def Enclosed Items
-        JTextField urlTextField = new JTextField(10);
+        urlTextField = new JTextField(10);
         JButton urlActionButton = new JButton("Open");
         urlActionButton.addActionListener(e -> {
-                    String url = urlTextField.getText();
-                    //TODO
-                    Suggestion.HistoryUpdateHandler.recordOn(urlTextField);
-                }
-        );
+            String url = urlTextField.getText().trim();
+            if (!url.isEmpty()) {
+                workflowController.processUrl(url); // New: Trigger processing
+                Suggestion.HistoryUpdateHandler.recordOn(urlTextField);
+            }
+        });
 
         JRadioButton urlDestSelLo = new JRadioButton("Local File");
         JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
@@ -114,15 +125,16 @@ public class MainWindowView {
     }
 
     private static JPanel initPrimaryTextDisplay(){
-        JPanel panel = new JPanel(new BorderLayout());
-
-        JTextArea mainTextArea = new JTextArea();
-        JScrollPane encapsulator = new JScrollPane(mainTextArea);
-        mainTextArea.setLineWrap(true);
-        mainTextArea.setWrapStyleWord(true);
-
-        panel.add(encapsulator,BorderLayout.CENTER);
-        return panel;
+//        JPanel panel = new JPanel(new BorderLayout());
+//
+//        JTextArea mainTextArea = new JTextArea();
+//        JScrollPane encapsulator = new JScrollPane(mainTextArea);
+//        mainTextArea.setLineWrap(true);
+//        mainTextArea.setWrapStyleWord(true);
+//
+//        panel.add(encapsulator,BorderLayout.CENTER);
+//        return panel;
+        return new TextDisplayPanel();
     }
 
     private static JPanel initFunctionControlPanel(){
@@ -218,5 +230,6 @@ public class MainWindowView {
     }
 
     //</editor-fold>
+
 
 }
