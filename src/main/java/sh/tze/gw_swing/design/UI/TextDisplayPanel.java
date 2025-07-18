@@ -29,6 +29,7 @@ public class TextDisplayPanel extends JPanel {
     }
 
 
+    public void setText(String text) { editorPane.setText(text);}
     public void clearDisplay(){
         editorPane.setText("");
     }

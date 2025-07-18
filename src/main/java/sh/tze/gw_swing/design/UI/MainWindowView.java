@@ -14,7 +14,6 @@ public class MainWindowView {
     private static JLabel statusLabel;
     private static JProgressBar progressBar;
     private static WorkflowController workflowController;
-//    private static UIUpdateHandler uiHandler;
 
     public static JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());

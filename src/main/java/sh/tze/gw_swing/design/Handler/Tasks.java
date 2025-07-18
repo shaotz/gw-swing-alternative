@@ -114,7 +114,6 @@ public class Tasks {
         @Override
         public void run() {
             try {
-                // Placeholder for NLP processing logic
                 for (int i = 0; i < 10; i++) { // Simulate loop
                     if (Thread.currentThread().isInterrupted()) {
                         result = "Task interrupted";
@@ -123,7 +122,6 @@ public class Tasks {
                     }
                     Thread.sleep(100); // Smaller sleeps to check interruption more frequently
                 }
-                result = "NLP Analysis of: " + toAnalyze;
                 completed = true;
             } catch (InterruptedException e) {
                 result = "Error during NLP analysis: " + e.getMessage();
