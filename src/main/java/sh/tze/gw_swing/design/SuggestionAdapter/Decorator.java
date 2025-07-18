@@ -12,7 +12,7 @@ import java.util.List;
 public class Decorator {
     /**
      *
-     * Step-in: Call to doDecorateOn(...) -> doDecorateOn(...) initializes an instance of TextSuggestionDecorator
+     * Call to doDecorateOn(...) -> doDecorateOn(...) initializes an instance of TextSuggestionDecorator
      * TSD: contains PopupMenu itself, contains the information to display
      * PopupMenu: should be updated per change in the JTextComponent it hooks to:
      *      1. JTextComponent sends a documentEvent
@@ -20,6 +20,7 @@ public class Decorator {
      *      3. PopupMenu re-configure itself to accommodate the updated information
      * @param <C> Object type of the object to decorate, should be an inherited type ofJTextComponent
      */
+
     // C for Component; This is Decorator in Decorator/SuggestionAdapter/SuggestionProvider
     public static class TextSuggestionDecorator<C extends JTextComponent> {
         private final C invoker;

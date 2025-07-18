@@ -25,8 +25,11 @@ public class DataRepresentation {
 
     }
 
+    class ex{
+        List<List<PresentableWord>> some;
+    }
     public class PresentableWord extends Word {
-        private boolean onFocus;
+//        private boolean onFocus;
         private boolean bold;
         public PresentableWord(String word, String POS, String lemma) {
             super(word, POS, lemma);

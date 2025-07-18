@@ -77,8 +77,7 @@ public class Tasks {
         }
 
         static Class<?> c;
-
-        @Override
+            @Override
         public String getTaskType() {
             return "CRAWLER";
         }

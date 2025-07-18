@@ -3,6 +3,8 @@ package sh.tze.gw_swing;
 import javax.swing.*;
 
 public class ProgramUI {
+
+
     // Public Information for Program UI
     public static final String DISPLAY_NAME = "Demo Application";
     public static final String UI_STYLE = "Nimbus";
