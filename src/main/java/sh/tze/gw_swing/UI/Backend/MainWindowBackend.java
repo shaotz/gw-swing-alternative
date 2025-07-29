@@ -1,8 +1,11 @@
 package sh.tze.gw_swing.UI.Backend;
 
 import com.lexparser.scraper.WikipediaScraper;
+import com.lexparser.scraper.nlp.AnnotatedToken;
 import com.lexparser.scraper.nlp.NLPProcessing;
+import sh.tze.gw_swing.UI.Backend.DataRepresentation.PresentableWord;
 import sh.tze.gw_swing.UI.Backend.DataRepresentation.PresentableWordSequence;
+import sh.tze.gw_swing.UI.Backend.DataRepresentation.Word;
 import sh.tze.gw_swing.UI.MainWindowView;
 
 import javax.swing.*;
@@ -22,7 +25,8 @@ public class MainWindowBackend {
     private NLPProcessing nlpres;
 
     private final List<String> urlhist = new ArrayList<>();
-    private final List<PresentableWordSequence> hist = new ArrayList<>();
+    private final List<NLPProcessing> hist = new ArrayList<>();
+    private NLPProcessing current;
 
     public MainWindowBackend(MainWindowView view) {
         mwView = view;
@@ -44,11 +48,50 @@ public class MainWindowBackend {
         }catch (Exception e){
             throw new RuntimeException(e);
         }
-        mwView.getTextDisplayPanel().setText(corpus);
+        doConversion();
+        present();
         //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn
     }
 
+    private void doConversion(){
+        hist.add(current);
+        current = nlpres;
+        var doc = nlpres.getWordSentences();
+        List<List<PresentableWord>> w = new ArrayList<>(doc.size());
+        for(var sentence : doc){
+            List<PresentableWord> ws = new ArrayList<>(sentence.size());
+            for(var word : sentence){
+                ws.add(new PresentableWord(Word.fromAnnotatedToken(word)));
+            }
+            w.add(ws);
+        }
 
+    }
+
+    private void present(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html>");
+        for(int i = 0; i < nlpres.getWordSentences().size(); i++){
+            StringBuilder l1 = new StringBuilder();
+            StringBuilder l2 = new StringBuilder();
+            StringBuilder l3 = new StringBuilder();
+            for(int j = 0; j < nlpres.getWordSentences().get(i).size(); j++){
+                var w = nlpres.getWordSentences().get(i).get(j);
+                l1.append(w.getForm() + " ");
+                l2.append(w.getLemma() + " ");
+                l3.append(w.getPos());
+            }
+            sb.append(l1);
+            sb.append("<br>");
+            sb.append(l2);
+            sb.append("<br>");
+            sb.append(l3);
+            sb.append("<br>");
+            sb.append("<hr>");
+        }
+        sb.append("</html>");
+        mwView.getTextDisplayPanel().setText(sb.toString());
+    }
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }

@@ -3,11 +3,19 @@ package sh.tze.gw_swing.UI.Backend.DataRepresentation;
 public class PresentableWord extends Word {
     //        private boolean onFocus;
     private boolean bold;
+
+    public PresentableWord(String word, String POS, String lemma, boolean bold) {
+        super(word, POS, lemma);
+        this.bold = bold;
+    }
+
     public PresentableWord(String word, String POS, String lemma) {
         super(word, POS, lemma);
+        bold = false;
     }
-    public PresentableWord(Word w){
+    public PresentableWord(Word w) {
         super(w.getWord(), w.getPOS(), w.getLemma());
+        bold = false;
     }
     public void setBold(boolean bold) {
         this.bold = bold;
