@@ -1,9 +1,11 @@
-package sh.tze.gw_swing.design.UI;
+package sh.tze.gw_swing.UI;
 
-import sh.tze.gw_swing.design.SuggestionAdapter.Decorator;
-import sh.tze.gw_swing.design.SuggestionAdapter.Provider;
-import sh.tze.gw_swing.design.Handler.Suggestion;
-import sh.tze.gw_swing.design.WorkflowController;
+import sh.tze.gw_swing.UI.SuggestionAdapter.Decorator;
+import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
+import sh.tze.gw_swing.UI.Backend.Handler.Suggestion;
+import sh.tze.gw_swing.UI.Widgets.FilterWidgetGroup;
+import sh.tze.gw_swing.UI.Widgets.TextDisplayPanel;
+import sh.tze.gw_swing.UI.Widgets.TextListDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +15,6 @@ public class MainWindowView {
     private static TextDisplayPanel textDisplayPanel;
     private static JLabel statusLabel;
     private static JProgressBar progressBar;
-    private static WorkflowController workflowController;
 
     public static JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());
@@ -24,7 +25,6 @@ public class MainWindowView {
         MWPanel.add(MWPanelSectionA,BorderLayout.NORTH);
         MWPanel.add(MWPanelSectionB,BorderLayout.CENTER);
 
-        workflowController = WorkflowController.getInstance();
 
         return MWPanel;
     }
@@ -84,7 +84,7 @@ public class MainWindowView {
         urlActionButton.addActionListener(e -> {
             String url = urlTextField.getText().trim();
             if (!url.isEmpty()) {
-                workflowController.processUrl(url); // New: Trigger processing
+//                workflowController.processUrl(url); // New: Trigger processing
                 Suggestion.HistoryUpdateHandler.recordOn(urlTextField);
             }
         });
@@ -195,9 +195,9 @@ public class MainWindowView {
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
-        Widgets.FilterWidgetGroup wordFilter = new Widgets.FilterWidgetGroup("Word", "Search word in full text...");
-        Widgets.FilterWidgetGroup posFilter = new Widgets.FilterWidgetGroup("POS Tag", "Filter for POS tags...");
-        Widgets.FilterWidgetGroup lemmaFilter = new Widgets.FilterWidgetGroup("Lemma", "Filter for lemma...");
+        FilterWidgetGroup wordFilter = new FilterWidgetGroup("Word", "Search word in full text...");
+        FilterWidgetGroup posFilter = new FilterWidgetGroup("POS Tag", "Filter for POS tags...");
+        FilterWidgetGroup lemmaFilter = new FilterWidgetGroup("Lemma", "Filter for lemma...");
 
 
         Decorator.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
@@ -220,8 +220,8 @@ public class MainWindowView {
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet","...", "", "Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet",};
-        JScrollPane listSP1 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum));
-        JScrollPane listSP2 = new JScrollPane(new Widgets.TextListDisplay<>(loremipsum.clone()));
+        JScrollPane listSP1 = new JScrollPane(new TextListDisplay<>(loremipsum));
+        JScrollPane listSP2 = new JScrollPane(new TextListDisplay<>(loremipsum.clone()));
         infoPanel.add(listSP1);
         infoPanel.add(listSP2);
 

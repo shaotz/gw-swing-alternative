@@ -1,7 +1,7 @@
 package sh.tze.gw_swing;
 
-import sh.tze.gw_swing.design.UI.MainWindowView;
-import sh.tze.gw_swing.design.UI.Widgets;
+import sh.tze.gw_swing.UI.MainWindowView;
+import sh.tze.gw_swing.UI.Widgets.LookAndFeelSelectorGroup;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +20,7 @@ public class MainWindow {
         frame.getContentPane().setBackground(Color.LIGHT_GRAY);
 
         // toolbar for L&F
-        Widgets.LookAndFeelSelectorGroup lookAndFeelSelector = new Widgets.LookAndFeelSelectorGroup(frame);
+        LookAndFeelSelectorGroup lookAndFeelSelector = new LookAndFeelSelectorGroup(frame);
         // optional listener to handle L&F changes
         // TODO: maybe don't hook selector change, or somehow filter the garbage output
         lookAndFeelSelector.addChangeListener(e -> {
@@ -35,9 +35,9 @@ public class MainWindow {
         frame.setVisible(true);
     }
     private static JFrame createFrame(){
-        JFrame frame = new JFrame(ProgramUI.DISPLAY_NAME);
+        JFrame frame = new JFrame(Manifest.DISPLAY_NAME);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Dimension d = new Dimension(ProgramUI.DEFAULT_WIDTH, ProgramUI.DEFAULT_HEIGHT);
+        Dimension d = new Dimension(Manifest.DEFAULT_WIDTH, Manifest.DEFAULT_HEIGHT);
         frame.setPreferredSize(d);
         return frame;
     }

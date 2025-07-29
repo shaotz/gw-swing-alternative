@@ -1,6 +1,6 @@
-package sh.tze.gw_swing.design.UI;
+package sh.tze.gw_swing.UI.Widgets;
 
-import sh.tze.gw_swing.design.DataRepresentation;
+import sh.tze.gw_swing.UI.Backend.DataRepresentation;
 
 import javax.swing.*;
 import java.awt.*;

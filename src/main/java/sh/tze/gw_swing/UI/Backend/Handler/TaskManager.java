@@ -1,4 +1,4 @@
-package sh.tze.gw_swing.design.Handler;
+package sh.tze.gw_swing.UI.Backend.Handler;
 
 import java.util.ArrayList;
 import java.util.HashMap;

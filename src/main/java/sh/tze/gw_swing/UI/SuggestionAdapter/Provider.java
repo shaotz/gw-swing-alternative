@@ -1,4 +1,4 @@
-package sh.tze.gw_swing.design.SuggestionAdapter;
+package sh.tze.gw_swing.UI.SuggestionAdapter;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;

@@ -1,8 +1,8 @@
-package sh.tze.gw_swing.design.Handler;
+package sh.tze.gw_swing.UI.Backend.Handler;
 
 import java.util.Optional;
 import java.util.UUID;
-import sh.tze.gw_swing.design.DataRepresentation;
+import sh.tze.gw_swing.UI.Backend.DataRepresentation;
 
 public class Tasks {
     public static final String CRAWLER_TYPE = "CRAWLER";

@@ -1,4 +1,4 @@
-package sh.tze.gw_swing.design;
+package sh.tze.gw_swing.UI.Backend;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +25,6 @@ public class DataRepresentation {
 
     }
 
-    class ex{
-        List<List<PresentableWord>> some;
-    }
     public class PresentableWord extends Word {
 //        private boolean onFocus;
         private boolean bold;
