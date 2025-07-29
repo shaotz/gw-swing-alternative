@@ -2,11 +2,14 @@ package sh.tze.gw_swing.UI.Backend.Handler;
 
 import java.io.File;
 
+@Deprecated
 public class FileRetrieval {
-    private File f;
-    public FileRetrieval(File file) {
-        f = file;
-    }
+    public static File open(String path){
+        try{
+            File file = new File(path);
+        } catch (Exception e){
 
-    public File getFile() {return f;}
+        }
+        return null;
+    }
 }

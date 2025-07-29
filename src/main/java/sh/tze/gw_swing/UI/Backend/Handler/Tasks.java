@@ -5,6 +5,7 @@ import sh.tze.gw_swing.UI.Backend.DataRepresentation.Analysis;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 public class Tasks {
     public static final String CRAWLER_TYPE = "CRAWLER";
     public static final String ANALYZER_TYPE = "ANALYZER";

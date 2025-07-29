@@ -5,14 +5,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+// Now serves entry to webcrawling functionality
 public class WikipediaScraper {
-    private String url;
-
-    public WikipediaScraper(String url) {
-        this.url = url;
+    public WikipediaScraper() {
     }
 
-    public String scrapeContent() {
+//    public WikipediaScraper(String url) {
+//        this.url = url;
+//    }
+
+    // don't have to create a dedicated instance for every url. This just serves as a
+    public static String scrapeContent(String url) {
         try {
             // Connect to the URL and get the HTML document
             Document doc = Jsoup.connect(url).get();
@@ -46,8 +49,8 @@ public class WikipediaScraper {
     public static void main(String[] args) {
         // Example usage
         String wikipediaUrl = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-        WikipediaScraper scraper = new WikipediaScraper(wikipediaUrl);
-        String content = scraper.scrapeContent();
+        WikipediaScraper scraper = new WikipediaScraper();
+        String content = scraper.scrapeContent(wikipediaUrl);
         System.out.println(content);
     }
 } 

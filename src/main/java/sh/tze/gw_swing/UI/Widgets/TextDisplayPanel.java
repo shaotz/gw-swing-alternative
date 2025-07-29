@@ -19,7 +19,7 @@ public class TextDisplayPanel extends JPanel {
     }
 
 
-    public void displayWords(List<PresentableWord> words) {
+    public void setTextFromWord(List<PresentableWord> words) {
         StringBuilder html = new StringBuilder("<html><body>");
         for (PresentableWord word : words) {
             html.append(word.renderWord()).append(" ");

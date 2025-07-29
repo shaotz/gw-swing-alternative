@@ -1,8 +1,5 @@
 package sh.tze.gw_swing;
 
-import sh.tze.gw_swing.UI.Backend.Handler.TaskManager;
-import sh.tze.gw_swing.UI.Backend.Handler.Tasks;
-
 import javax.swing.*;
 
 public class MainThread {
@@ -11,11 +8,8 @@ public class MainThread {
             MainWindow.runUIThread();
         });
 
-            TaskManager manager = TaskManager.getInstance();
-            Tasks adapter = new Tasks();
-            Tasks.WikipediaCrawler crawler = adapter.new WikipediaCrawler("https://en.wikipedia.org/wiki/Java_(programming_language)");
-            manager.addTask(crawler);
     }
+
 }
 
 /*

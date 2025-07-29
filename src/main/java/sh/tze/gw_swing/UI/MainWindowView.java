@@ -1,5 +1,6 @@
 package sh.tze.gw_swing.UI;
 
+import sh.tze.gw_swing.UI.Backend.MainWindowBackend;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Decorator;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Suggestion;
@@ -11,27 +12,38 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainWindowView {
-    private static JTextField urlTextField;
-    private static TextDisplayPanel textDisplayPanel;
-    private static JLabel statusLabel;
-    private static JProgressBar progressBar;
+    private JPanel mainPanel;
+    private  JTextField urlTextField;
+    private  TextDisplayPanel textDisplayPanel;
+    private  JLabel statusLabel;
+    private  JProgressBar progressBar;
 
-    public static JPanel initMainWindowPanel() {
+    private  MainWindowBackend backend;
+
+    public MainWindowView() {
+        backend = new MainWindowBackend(this);
+        mainPanel = initMainWindowPanel();
+    }
+
+    public JPanel getMainPanel() {
+        return mainPanel;
+    }
+
+    private JPanel initMainWindowPanel() {
         JPanel MWPanel = new JPanel(new BorderLayout());
         MWPanel.setName("RootPanel");
-        JPanel MWPanelSectionA = initMWPanelSectA();
-        JPanel MWPanelSectionB = initMWPanelSectB();
+
+        JPanel MWPanelSectionA = createMWPanelSectA();
+        JPanel MWPanelSectionB = createMWPanelSectB();
 
         MWPanel.add(MWPanelSectionA,BorderLayout.NORTH);
         MWPanel.add(MWPanelSectionB,BorderLayout.CENTER);
-
 
         return MWPanel;
     }
 
     //<editor-fold desc="Flattened tree definition Side L: Section Above(A)">
-    private static JPanel initMWPanelSectA(){
-
+    private JPanel createMWPanelSectA(){
 //      JPanel sect = new JPanel(new GridLayout(2,3));
         Color color = new Color(0xF6, 0xC9, 0xCC);
 
@@ -68,26 +80,20 @@ public class MainWindowView {
         centerPanel.add(numOfNeighbors);
         centerPanel.add(neighborPanel);
 
-        container.add(initURLSelectorPanel(), BorderLayout.NORTH);
+        container.add(createURLSelectorPanel(), BorderLayout.NORTH);
         container.add(selectCaseButton, BorderLayout.WEST);
         container.add(centerPanel, BorderLayout.CENTER);
 
         return container;
     }
 
-    private static JPanel initURLSelectorPanel(){
+    private JPanel createURLSelectorPanel(){
         JPanel container = new JPanel(new BorderLayout());
 
         // Def Enclosed Items
         urlTextField = new JTextField(10);
         JButton urlActionButton = new JButton("Open");
-        urlActionButton.addActionListener(e -> {
-            String url = urlTextField.getText().trim();
-            if (!url.isEmpty()) {
-//                workflowController.processUrl(url); // New: Trigger processing
-                Suggestion.HistoryUpdateHandler.recordOn(urlTextField);
-            }
-        });
+        urlActionButton.addActionListener(backend.new URLOpenListener(urlTextField)); // this static and non-static shit
 
         JRadioButton urlDestSelLo = new JRadioButton("Local File");
         JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
@@ -115,15 +121,15 @@ public class MainWindowView {
 
 
     //<editor-fold desc="Flattened tree definition Side R: Section Below(B)">
-    private static JPanel initMWPanelSectB() {
+    private JPanel createMWPanelSectB() {
         JPanel sect = new JPanel(new BorderLayout());
 
-        sect.add(initPrimaryTextDisplay(), BorderLayout.CENTER);
-        sect.add(initFunctionControlPanel(), BorderLayout.EAST);
+        sect.add(createPrimaryTextDisplay(), BorderLayout.CENTER);
+        sect.add(createFunctionControlPanel(), BorderLayout.EAST);
         return sect;
     }
 
-    private static JPanel initPrimaryTextDisplay(){
+    private JPanel createPrimaryTextDisplay(){
 //        JPanel panel = new JPanel(new BorderLayout());
 //
 //        JTextArea mainTextArea = new JTextArea();
@@ -133,10 +139,12 @@ public class MainWindowView {
 //
 //        panel.add(encapsulator,BorderLayout.CENTER);
 //        return panel;
-        return new TextDisplayPanel();
+        TextDisplayPanel tdp = new TextDisplayPanel();
+        textDisplayPanel = tdp;
+        return tdp;
     }
 
-    private static JPanel initFunctionControlPanel(){
+    private JPanel createFunctionControlPanel(){
         JPanel panel = new JPanel(new GridBagLayout());
         // Will just operate on constraint buffer `gbc`
         GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this LOL
@@ -188,7 +196,7 @@ public class MainWindowView {
         return panel;
     }
 
-    private static JPanel initFilterSection() {
+    private JPanel initFilterSection() {
         JPanel section = new JPanel(); // removed a confusing declaration
         JPanel keywordFilterPanel = new JPanel();
         JPanel adjustmentPanel = new JPanel(); //TODO
@@ -215,7 +223,7 @@ public class MainWindowView {
         return section;
     }
 
-    private static JPanel initInfoPanel(){
+    private JPanel initInfoPanel(){
         JPanel infoPanel = new JPanel();
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -231,4 +239,23 @@ public class MainWindowView {
     //</editor-fold>
 
 
+    public JTextField getUrlTextField() {
+        return urlTextField;
+    }
+
+    public TextDisplayPanel getTextDisplayPanel() {
+        return textDisplayPanel;
+    }
+
+    public JLabel getStatusLabel() {
+        return statusLabel;
+    }
+
+    public JProgressBar getProgressBar() {
+        return progressBar;
+    }
+
+    public MainWindowBackend getBackend() {
+        return backend;
+    }
 }
