@@ -1,8 +1,9 @@
 package sh.tze.gw_swing.UI.Backend.Handler;
 
+import sh.tze.gw_swing.UI.Backend.DataRepresentation.Analysis;
+
 import java.util.Optional;
 import java.util.UUID;
-import sh.tze.gw_swing.UI.Backend.DataRepresentation;
 
 public class Tasks {
     public static final String CRAWLER_TYPE = "CRAWLER";
@@ -37,14 +38,14 @@ public class Tasks {
         protected final String toAnalyze;
         protected String result;
         protected boolean completed;
-        protected DataRepresentation.Analysis analysis; // To store processed results
+        protected Analysis analysis; // To store processed results
 
         public Analyzer(String toAnalyze) {
             this.taskId = UUID.randomUUID().toString();
             this.toAnalyze = toAnalyze;
             this.completed = false;
             this.result = "";
-            this.analysis = new DataRepresentation.Analysis(""); // Initialize with empty source (set later if needed)
+            this.analysis = new Analysis(""); // Initialize with empty source (set later if needed)
         }
 
         @Override
@@ -62,7 +63,7 @@ public class Tasks {
             return completed ? Optional.of(result) : Optional.empty();
         }
 
-        public DataRepresentation.Analysis getAnalysis() {
+        public Analysis getAnalysis() {
             return analysis;
         }
     }

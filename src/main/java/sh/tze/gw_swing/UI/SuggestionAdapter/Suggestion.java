@@ -1,6 +1,4 @@
-package sh.tze.gw_swing.UI.Backend.Handler;
-
-import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
+package sh.tze.gw_swing.UI.SuggestionAdapter;
 
 import javax.swing.text.JTextComponent;
 import java.util.List;

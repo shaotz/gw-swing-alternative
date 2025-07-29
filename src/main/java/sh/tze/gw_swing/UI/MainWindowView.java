@@ -2,10 +2,7 @@ package sh.tze.gw_swing.UI;
 
 import sh.tze.gw_swing.UI.SuggestionAdapter.Decorator;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
-import sh.tze.gw_swing.UI.Backend.Handler.Suggestion;
-import sh.tze.gw_swing.UI.Widgets.FilterWidgetGroup;
-import sh.tze.gw_swing.UI.Widgets.TextDisplayPanel;
-import sh.tze.gw_swing.UI.Widgets.TextListDisplay;
+import sh.tze.gw_swing.UI.SuggestionAdapter.Suggestion;
 
 import javax.swing.*;
 import java.awt.*;

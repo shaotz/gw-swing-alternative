@@ -1,6 +1,6 @@
 package sh.tze.gw_swing.UI.Widgets;
 
-import sh.tze.gw_swing.UI.Backend.DataRepresentation;
+import sh.tze.gw_swing.UI.Backend.DataRepresentation.PresentableWord;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,9 +19,9 @@ public class TextDisplayPanel extends JPanel {
     }
 
 
-    public void displayWords(List<DataRepresentation.PresentableWord> words) {
+    public void displayWords(List<PresentableWord> words) {
         StringBuilder html = new StringBuilder("<html><body>");
-        for (DataRepresentation.PresentableWord word : words) {
+        for (PresentableWord word : words) {
             html.append(word.renderWord()).append(" ");
         }
         html.append("</body></html>");
