@@ -50,9 +50,13 @@ public class MainWindowView {
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(color);
 
-        JRadioButton selectCaseButton = new JRadioButton("Case Sensitive");
+        JCheckBox selectCaseButton = new JCheckBox("Case Sensitive");
         JRadioButton wholeSentenceButton = new JRadioButton("Whole Sentence");
         JRadioButton numOfNeighbors = new JRadioButton("# of Neighbor Words");
+
+        ButtonGroup filterRangeGroup = new ButtonGroup();
+        filterRangeGroup.add(numOfNeighbors);
+        filterRangeGroup.add(wholeSentenceButton);
 
         JPanel neighborPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         neighborPanel.setBackground(color);
@@ -95,21 +99,22 @@ public class MainWindowView {
         JButton urlActionButton = new JButton("Open");
         urlActionButton.addActionListener(backend.new URLOpenListener(urlTextField)); // this static and non-static shit
 
-        JRadioButton urlDestSelLo = new JRadioButton("Local File");
-        JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
+//        JRadioButton urlDestSelLo = new JRadioButton("Local File");
+//        JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
+
         var historyProvider = new Provider.TextHistorySuggestionProvider();
         Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
                 historyProvider);
-        ButtonGroup urlDestSelGroup = new ButtonGroup();
-        urlDestSelGroup.add(urlDestSelLo);
-        urlDestSelGroup.add(urlDestSelRe);
-        JPanel urlDestSelContainer = new JPanel(new GridLayout(1,2));
-        urlDestSelContainer.add(urlDestSelLo);
-        urlDestSelContainer.add(urlDestSelRe);
+//        ButtonGroup urlDestSelGroup = new ButtonGroup();
+//        urlDestSelGroup.add(urlDestSelLo);
+//        urlDestSelGroup.add(urlDestSelRe);
+//        JPanel urlDestSelContainer = new JPanel(new GridLayout(1,2));
+//        urlDestSelContainer.add(urlDestSelLo);
+//        urlDestSelContainer.add(urlDestSelRe);
 
 
         // Registering enclosed items
-        container.add(urlDestSelContainer,BorderLayout.WEST);
+//        container.add(urlDestSelContainer,BorderLayout.WEST);
         container.add(urlTextField,BorderLayout.CENTER);
         container.add(urlActionButton,BorderLayout.EAST);
         // applying BorderLayout on atom items to instruct positioning
@@ -130,15 +135,7 @@ public class MainWindowView {
     }
 
     private JPanel createPrimaryTextDisplay(){
-//        JPanel panel = new JPanel(new BorderLayout());
-//
-//        JTextArea mainTextArea = new JTextArea();
-//        JScrollPane encapsulator = new JScrollPane(mainTextArea);
-//        mainTextArea.setLineWrap(true);
-//        mainTextArea.setWrapStyleWord(true);
-//
-//        panel.add(encapsulator,BorderLayout.CENTER);
-//        return panel;
+
         TextDisplayPanel tdp = new TextDisplayPanel();
         textDisplayPanel = tdp;
         return tdp;
@@ -193,6 +190,17 @@ public class MainWindowView {
         gbc.insets = new Insets(5, 5, 5, 5);
         panel.add(masterSaveButton, gbc);
 
+        // Add file selector to masterSaveButton
+        masterSaveButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save as XML");
+            int userSelection = fileChooser.showSaveDialog(panel);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                // TODO: save logic missing
+                JOptionPane.showMessageDialog(panel, "Selected file: " + fileToSave.getAbsolutePath());
+            }
+        });
         return panel;
     }
 

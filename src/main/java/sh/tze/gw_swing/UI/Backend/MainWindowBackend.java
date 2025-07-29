@@ -37,19 +37,19 @@ public class MainWindowBackend {
 
     public void setup(){
         addPropertyChangeListener("corpus", evt -> {
-            onCorpusChange();
+            onCorpusChange(); // 320ms
         });
     }
 
     private void onCorpusChange(){
         //throwing out from the processing class is a bit annoying
         try{
-            nlpres = new NLPProcessing(getCorpus());
+            nlpres = new NLPProcessing(getCorpus()); // 310ms of 320ms lmao
         }catch (Exception e){
             throw new RuntimeException(e);
         }
         doConversion();
-        present();
+        present(); // only 10ms. modern microarchitecture. wow.
         //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn
     }
 
@@ -68,9 +68,10 @@ public class MainWindowBackend {
 
     }
 
+    // profiling shows the big-eater is still opennlp. good news.
     private void present(){
         StringBuilder sb = new StringBuilder();
-        sb.append("<html>");
+        sb.append("<html><body style=\"white-space: nowrap;\">");
         for(int i = 0; i < nlpres.getWordSentences().size(); i++){
             StringBuilder l1 = new StringBuilder();
             StringBuilder l2 = new StringBuilder();
@@ -79,7 +80,7 @@ public class MainWindowBackend {
                 var w = nlpres.getWordSentences().get(i).get(j);
                 l1.append(w.getForm() + " ");
                 l2.append(w.getLemma() + " ");
-                l3.append(w.getPos());
+                l3.append(w.getPos() + " ");
             }
             sb.append(l1);
             sb.append("<br>");
@@ -89,7 +90,7 @@ public class MainWindowBackend {
             sb.append("<br>");
             sb.append("<hr>");
         }
-        sb.append("</html>");
+        sb.append("</body></html>");
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -130,7 +131,7 @@ public class MainWindowBackend {
     private static final String RemotePolicy = "^(http|https|ftp)://.*$";
     private static final String FQDNShapedPolicy = "([a-zA-Z0-9].)+[a-zA-Z0-9]"; // sry modern non-latin tLDs
     // now only allowing valid absolute path; relying on 'working directory' for a gui program is anyway less intuitive
-    private static final String LocalPolicy = "^(/|(/([a-zA-Z0-9_-]+))+$)";
+    private static final String LocalPolicy = "^(/|(/(.+))+$)"; //forgot about unicode chars
 
     //https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL
     public void dispatchURL(String url) { // oof, debate over whether to lazy-load content
