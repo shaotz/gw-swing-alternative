@@ -1,6 +1,7 @@
 package sh.tze.gw_swing;
 
 import sh.tze.gw_swing.UI.MainWindowView;
+import sh.tze.gw_swing.UI.Widgets.LookAndFeelSelectorGroup;
 
 import javax.swing.*;
 import java.awt.*;

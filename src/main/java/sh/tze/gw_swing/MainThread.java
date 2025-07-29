@@ -33,5 +33,5 @@ public class MainThread {
 
 
     Maybe you have already tested the application and found it working. That's great.
-    A working program always needs integration. Integration means to mix
+    A working program always needs integration.
  */
