@@ -100,7 +100,7 @@ public class Decorator {
                             e.consume();
                             break;
                         case KeyEvent.VK_UP: case KeyEvent.VK_KP_UP:
-                            if (candidateList.getSelectedIndex() - 1 > 0)
+                            if (candidateList.getSelectedIndex() - 1 >= 0)
                                 // targetIndex mod size to prevent overflow: thanks autocompletion, you've finally provided something insightful
                                 candidateList.setSelectedIndex(candidateList.getSelectedIndex() - 1 % candidateList.getModel().getSize());
                             e.consume();
