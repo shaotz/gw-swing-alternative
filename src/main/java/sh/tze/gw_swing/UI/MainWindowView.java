@@ -229,7 +229,6 @@ public class MainWindowView {
     private JPanel initFilterSection() {
         JPanel section = new JPanel(); // removed a confusing declaration
         JPanel keywordFilterPanel = new JPanel();
-//        JPanel adjustmentPanel = new JPanel(); //TODO
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 

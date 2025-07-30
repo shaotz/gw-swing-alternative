@@ -58,9 +58,18 @@ public class MainWindowBackend {
         //throwing out from the processing class is a bit annoying
         var previous = nlpres;
         try{
-            nlpres = new NLPProcessing(getCorpus()); // 310ms of 320ms lmao
-            schemeHistory.put(previous, currentSchemeHistory);
-            currentSchemeHistory.clear();
+            nlpres = new NLPProcessing(getCorpus());
+
+            // Only save schemes if there was a previous corpus AND current schemes exist
+            if(previous != null && !currentSchemeHistory.isEmpty()){
+                var hist = schemeHistory.get(previous);
+                if(hist == null || hist.isEmpty()){
+                    schemeHistory.put(previous, new ArrayList<>(currentSchemeHistory));
+                }else {
+                    hist.addAll(currentSchemeHistory);
+                }
+                currentSchemeHistory.clear();
+            }
         }catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -69,8 +78,12 @@ public class MainWindowBackend {
         //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn  <no more relevant>
     }
     public void onFilterClicked(){
+        if( mwView.getSel_wf() == null && mwView.getTf_pos() == null && mwView.getSel_lemma() == null) {
+            JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Please select at least one filter criterion.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         presentFiltering();
-        updateHistoryPaneOnSchemeChange();
+        updateFilterSchemePaneOnNewScheme();
     }
     public void onResetClicked(){
         if(corpus == null || nlpres == null ){
@@ -154,7 +167,6 @@ public class MainWindowBackend {
                         "No search results to save.", "Warning", JOptionPane.WARNING_MESSAGE);
             }
             // ^^^^^ don't get distracted by popup lines
-            JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Saved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         }catch (RuntimeException e){
           JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e){
@@ -166,7 +178,8 @@ public class MainWindowBackend {
         var listModel = mwView.getUrlHistoryListModel();
         var filterSchemeHistoryList = mwView.getFilterSchemeHistoryList();
         var filterSchemeListModel = mwView.getFilterSchemeHistoryListModel();
-        if(!currentSchemeHistory.isEmpty()){
+
+        if(nlpres != null && !currentSchemeHistory.isEmpty()){
             var hist = schemeHistory.get(nlpres);
             if(hist == null || hist.isEmpty()){
                 schemeHistory.put(nlpres, new ArrayList<>(currentSchemeHistory));
@@ -182,10 +195,15 @@ public class MainWindowBackend {
 
         filterSchemeListModel.clear();
         filterSchemeListModel.addElement("Filter Scheme History");
-        List<String> filterSchemeHistory = schemeHistory.get(nlpres).stream().
-                map(filterScheme::toStringAsListEntry)
-                .collect(Collectors.toList());;
-        filterSchemeListModel.addAll(filterSchemeHistory);
+
+        List<filterScheme> schemes = schemeHistory.get(nlpres);
+        if (schemes != null && !schemes.isEmpty()) {
+            List<String> filterSchemeHistory = schemes.stream()
+                    .map(filterScheme::toStringAsListEntry)
+                    .collect(Collectors.toList());
+            filterSchemeListModel.addAll(filterSchemeHistory);
+        }
+
         present();
     }
     public void onFilterSchemeListEntryActivated(){
@@ -196,9 +214,13 @@ public class MainWindowBackend {
         filterScheme fs = fromStringAsListEntry(selectedScheme);
         presentFiltering(fs);
     }
-    private void updateHistoryPaneOnSchemeChange(){ //idealy should be triggered on new_corpus, new_filterScheme
+    private void updateFilterSchemePaneOnNewScheme(){ //idealy should be triggered on new_corpus, new_filterScheme
+        if(currentSchemeHistory.isEmpty()) {
+            return; // Nothing to update
+        }
+
         var filterSchemeHistoryList = mwView.getFilterSchemeHistoryList();
-        var listModel =  mwView.getFilterSchemeHistoryListModel();
+        var listModel = mwView.getFilterSchemeHistoryListModel();
 
         var fs = currentSchemeHistory.get(currentSchemeHistory.size()-1);
         listModel.addElement(fs.toStringAsListEntry());
@@ -408,6 +430,7 @@ public class MainWindowBackend {
         boolean caseSensitive = false;
         _filter_range_scheme rs;
         int l = 0, r = 0;
+
         if(mwView.getSel_cs().isSelected()){
             caseSensitive = true;
         }

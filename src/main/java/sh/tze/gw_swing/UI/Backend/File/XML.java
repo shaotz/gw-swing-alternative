@@ -11,8 +11,7 @@ import java.util.Map;
 public class XML {
 
     /**
-     * Converts a list of document data (List<List<List<AnnotatedToken>>>) to XML string representation using StAX
-     * Includes metadata for URL, Date, and FilterScheme
+     * Converts a list of document data (List<List<List<AnnotatedToken>>>) to XML string representation
      */
     public static String toXML(List<List<List<AnnotatedToken>>> documents,
                                List<String> urls,
@@ -94,97 +93,6 @@ public class XML {
                 writer.writeEndElement(); // end document
             }
 
-            writer.writeEndElement(); // end corpus-collection
-            writer.writeEndDocument();
-
-            writer.flush();
-            writer.close();
-
-            return stringWriter.toString();
-
-        } catch (XMLStreamException e) {
-            throw new RuntimeException("Error creating XML: " + e.getMessage(), e);
-        }
-    }
-    public static String toXMLFromSearchResults(List<List<SearchResult>> searchResults,
-                                                String url,
-                                                String date,
-                                                String filterScheme) {
-        StringWriter stringWriter = new StringWriter();
-        try {
-            XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-            XMLStreamWriter writer = xmlOutputFactory.createXMLStreamWriter(stringWriter);
-
-            writer.writeStartDocument("UTF-8", "1.0");
-            writer.writeStartElement("corpus-collection");
-
-            // Single document with search results
-            writer.writeStartElement("document");
-            writer.writeAttribute("id", "0");
-
-            // Write metadata
-            writer.writeStartElement("metadata");
-
-            // URL
-            writer.writeStartElement("url");
-            writer.writeCharacters(url != null ? url : "");
-            writer.writeEndElement();
-
-            // Date
-            writer.writeStartElement("date");
-            writer.writeCharacters(date != null ? date : "");
-            writer.writeEndElement();
-
-            // FilterScheme
-            writer.writeStartElement("filter-scheme");
-            writer.writeCharacters(filterScheme != null ? filterScheme : "");
-            writer.writeEndElement();
-
-            writer.writeEndElement(); // end metadata
-
-            // Write sentences from search results
-            writer.writeStartElement("sentences");
-
-            for (List<SearchResult> resultGroup : searchResults) {
-                for (SearchResult result : resultGroup) {
-                    writer.writeStartElement("sentence");
-
-                    List<AnnotatedToken> sentence = result.getSentence();
-                    int matchIndex = result.getIndex();
-
-                    for (int i = 0; i < sentence.size(); i++) {
-                        AnnotatedToken token = sentence.get(i);
-                        writer.writeStartElement("token");
-
-                        // Add a match attribute if this token was matched
-                        if (i == matchIndex) {
-                            writer.writeAttribute("matched", "true");
-                        }
-
-                        // Write form (word)
-                        writer.writeStartElement("form");
-                        writer.writeCharacters(token.getForm());
-                        writer.writeEndElement();
-
-                        // Write POS tag
-                        writer.writeStartElement("pos");
-                        writer.writeCharacters(token.getPos());
-                        writer.writeEndElement();
-
-                        // Write lemma
-                        writer.writeStartElement("lemma");
-                        writer.writeCharacters(token.getLemma());
-                        writer.writeEndElement();
-
-                        writer.writeEndElement(); // end token
-                    }
-
-                    writer.writeEndElement(); // end sentence
-                }
-            }
-
-            writer.writeEndElement(); // end sentences
-            writer.writeEndElement(); // end document
             writer.writeEndElement(); // end corpus-collection
             writer.writeEndDocument();
 
