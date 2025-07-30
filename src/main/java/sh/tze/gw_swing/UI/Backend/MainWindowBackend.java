@@ -5,6 +5,7 @@ import com.lexparser.scraper.nlp.AnnotatedToken;
 import com.lexparser.scraper.nlp.NLPProcessing;
 import sh.tze.gw_swing.UI.Backend.DataRepresentation.PresentableWord;
 import sh.tze.gw_swing.UI.Backend.DataRepresentation.Word;
+import sh.tze.gw_swing.UI.Backend.File.IOWrapper;
 import sh.tze.gw_swing.UI.MainWindowView;
 
 import com.lexparser.scraper.nlp.SearchResult;
@@ -14,9 +15,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class MainWindowBackend {
@@ -55,8 +56,11 @@ public class MainWindowBackend {
 
     private void onCorpusChange(){
         //throwing out from the processing class is a bit annoying
+        var previous = nlpres;
         try{
             nlpres = new NLPProcessing(getCorpus()); // 310ms of 320ms lmao
+            schemeHistory.put(previous, currentSchemeHistory);
+            currentSchemeHistory.clear();
         }catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -74,18 +78,114 @@ public class MainWindowBackend {
         }
         present();
     }
-    public void onSaveClicked(){
-        if(corpus == null || nlpres == null ){
+    /*
+    using:
+    public static void saveToXML(List<List<List<AnnotatedToken>>> documents,
+                                 List<String> urls,
+                                 List<String> filterSchemes,
+                                 String filePath)
 
+     */
+    public void onSaveClicked(File file){
+        if(corpus == null || nlpres == null ){
+            JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "No corpus loaded or processed.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        // ITERATE OVER HISTORY CHAIN
+        // URL -> CorpusHistory -> FilterSchemeHistory
+        // **almost forgot currentSchemeHistory**
+        // and then apply filterScheme to their own corpus
+        try {
+            // Maps to store all results
+            Map<String, List<List<SearchResult>>> urlToResultsMap = new HashMap<>();
+            Map<String, String> urlToDateMap = new HashMap<>();
+            Map<String, String> urlToFilterSchemeMap = new HashMap<>();
+
+            // First add current filter scheme results if it exists
+            if (!currentSchemeHistory.isEmpty()) {
+                filterScheme currentScheme = currentSchemeHistory.get(currentSchemeHistory.size() - 1);
+                List<List<SearchResult>> results = doFilter(currentScheme);
+
+                if (!results.isEmpty() && !urlHistory.isEmpty()) {
+                    String url = urlHistory.get(urlHistory.size() - 1);
+                    urlToResultsMap.put(url, results);
+                    urlToDateMap.put(url, ""); // No date available
+                    urlToFilterSchemeMap.put(url, currentScheme.toStringAsListEntry());
+                }
+            }
+            for (int i = 0; i < urlHistory.size(); i++) {
+                String url = urlHistory.get(i);
+                NLPProcessing atCorpus = corpusHistory.get(url);
+
+                if (atCorpus != null) {
+                    List<filterScheme> filterSchemes = schemeHistory.get(atCorpus);
+
+                    if (filterSchemes != null && !filterSchemes.isEmpty()) {
+                        for (filterScheme scheme : filterSchemes) {
+                            // Temporarily set nlpres to the historical corpus to filter correctly
+                            NLPProcessing tempNlpres = nlpres;
+                            nlpres = atCorpus;
+                            List<List<SearchResult>> results = doFilter(scheme);
+                            nlpres = tempNlpres; // Restore current nlpres
+
+                            if (!results.isEmpty()) {
+                                // If this URL is already in the map, append results
+                                if (urlToResultsMap.containsKey(url)) {
+                                    urlToResultsMap.get(url).addAll(results);
+                                } else {
+                                    urlToResultsMap.put(url, results);
+                                }
+
+                                urlToDateMap.put(url, ""); // No date available
+                                urlToFilterSchemeMap.put(url, scheme.toStringAsListEntry());
+                            }
+                        }
+                    }
+                }
+            }
+            if (!urlToResultsMap.isEmpty()) {
+                IOWrapper.saveMultipleSearchResultsToXML(
+                        urlToResultsMap, urlToDateMap, urlToFilterSchemeMap,
+                        file.getAbsolutePath());
+
+                JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(),
+                        "Saved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(),
+                        "No search results to save.", "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+            // ^^^^^ don't get distracted by popup lines
+            JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Saved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }catch (RuntimeException e){
+          JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Failed to save: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     public void onURLListEntryActivated(){
         var corpusHistoryList = mwView.getUrlHistoryList();
         var listModel = mwView.getUrlHistoryListModel();
+        var filterSchemeHistoryList = mwView.getFilterSchemeHistoryList();
+        var filterSchemeListModel = mwView.getFilterSchemeHistoryListModel();
+        if(!currentSchemeHistory.isEmpty()){
+            var hist = schemeHistory.get(nlpres);
+            if(hist == null || hist.isEmpty()){
+                schemeHistory.put(nlpres, new ArrayList<>(currentSchemeHistory));
+            }else {
+                hist.addAll(currentSchemeHistory);
+            }
+            currentSchemeHistory.clear();
+        }
 
         String selectedURL = (String) corpusHistoryList.getSelectedData();
         NLPProcessing referencedDoc = corpusHistory.get(selectedURL);
         nlpres = referencedDoc;
+
+        filterSchemeListModel.clear();
+        filterSchemeListModel.addElement("Filter Scheme History");
+        List<String> filterSchemeHistory = schemeHistory.get(nlpres).stream().
+                map(filterScheme::toStringAsListEntry)
+                .collect(Collectors.toList());;
+        filterSchemeListModel.addAll(filterSchemeHistory);
         present();
     }
     public void onFilterSchemeListEntryActivated(){
@@ -111,6 +211,15 @@ public class MainWindowBackend {
 
         listModel.addElement(urlHistory.get(urlHistory.size()-1));
         urlHistoryList.setSelectedIndex(listModel.getSize() - 1);
+
+        var filterSchemeHistoryList = mwView.getFilterSchemeHistoryList();
+        var filterSchemeListModel = mwView.getFilterSchemeHistoryListModel();
+        // clear the filter scheme history, since it is not relevant to the new corpus
+        filterSchemeListModel.clear();
+        filterSchemeListModel.addElement("Filter Scheme History");
+        filterSchemeHistoryList.setSelectedIndex(-1); // deselect the list
+
+        // is not relevant to the new corpus, and the user should not see any previous filter schemes
     }
     private void doConversion(){
         if(f_first){
@@ -118,7 +227,6 @@ public class MainWindowBackend {
             f_first = false;
         }else{
             corpusHistory.put(urlHistory.get(urlHistory.size()-1),nlpres);
-            schemeHistory.put(nlpres, currentSchemeHistory);
         }
 
         var doc = nlpres.getWordSentences();
@@ -334,35 +442,37 @@ public class MainWindowBackend {
         }
 
         List<AnnotatedToken> intermediate1 = new ArrayList<>();
-        // pass 1 to collect hit from corpus with the highest,
-        // also must handle case-specificity here, otherwise words of diff. cases will be collected and contaminate the intermediate set
-        if (!fs.wf().isBlank()) {
-            for(var s : nlpres.getWordSentences()) {
-                for(var w : s){
-                    boolean matches = fs.caseSensitive() ?
-                            fs.wf().equals(w.getForm()) :
-                            fs.wf().equalsIgnoreCase(w.getForm());
-                    if(matches) intermediate1.add(w);
+        if((!Objects.equals(fs.wf(), "") || !Objects.equals(fs.lemma(), "") || !Objects.equals(fs.pos(), ""))){
+            // pass 1 to collect hit from corpus with the highest,
+            // also must handle case-specificity here, otherwise words of diff. cases will be collected and contaminate the intermediate set
+            if (!fs.wf().isBlank()) {
+                for (var s : nlpres.getWordSentences()) {
+                    for (var w : s) {
+                        boolean matches = fs.caseSensitive() ?
+                                fs.wf().equals(w.getForm()) :
+                                fs.wf().equalsIgnoreCase(w.getForm());
+                        if (matches) intermediate1.add(w);
+                    }
                 }
-            }
-        } else if (!fs.lemma().isBlank()) {
-            for(var s : nlpres.getWordSentences()) {
-                for(var w : s){
-                    boolean matches = fs.caseSensitive() ?
-                            fs.lemma().equals(w.getLemma()) :
-                            fs.lemma().equalsIgnoreCase(w.getLemma());
-                    if(matches) intermediate1.add(w);
+            } else if (!fs.lemma().isBlank()) {
+                for (var s : nlpres.getWordSentences()) {
+                    for (var w : s) {
+                        boolean matches = fs.caseSensitive() ?
+                                fs.lemma().equals(w.getLemma()) :
+                                fs.lemma().equalsIgnoreCase(w.getLemma());
+                        if (matches) intermediate1.add(w);
+                    }
                 }
-            }
-        } else if (!fs.pos().isBlank()) {
-            for(var s : nlpres.getWordSentences()) {
-                for(var w : s){
-                    if(fs.pos().equals(w.getPos())) intermediate1.add(w);
+            } else if (!fs.pos().isBlank()) {
+                for (var s : nlpres.getWordSentences()) {
+                    for (var w : s) {
+                        if (fs.pos().equals(w.getPos())) intermediate1.add(w);
+                    }
                 }
+            } else {
+                return new ArrayList<>();
             }
-        } else {
-            return new ArrayList<>();
-        }
+        }else intermediate1 = nlpres.getWordSentences().stream().flatMap(List::stream).collect(Collectors.toList());
 
         //pass 2 to apply lower precedence keys
         List<AnnotatedToken> intermediate2 = new ArrayList<>();
@@ -467,7 +577,7 @@ public class MainWindowBackend {
     // some dirty works here
     public static filterScheme fromStringAsListEntry(String listEntry) {
         boolean caseSensitive = false;
-        _filter_range_scheme rs = _filter_range_scheme._reserved;
+        _filter_range_scheme rs = _filter_range_scheme.whole_sentence; // adjusted to whole_sentence for better compatibility with XML writes
         int l = 0, r = 0;
         String wf = "", pos = "", lemma = "";
         // csv hoooray

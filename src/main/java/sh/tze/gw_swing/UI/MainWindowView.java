@@ -127,22 +127,14 @@ public class MainWindowView {
         JButton urlActionButton = new JButton("Open");
         urlActionButton.addActionListener(backend.new URLOpenListener(urlTextField)); // this static and non-static shit
 
-//        JRadioButton urlDestSelLo = new JRadioButton("Local File");
-//        JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
+//        var historyProvider = new Provider.TextHistorySuggestionProvider();
+//        Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
+//                historyProvider);
 
-        var historyProvider = new Provider.TextHistorySuggestionProvider();
-        Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
-                historyProvider);
-//        ButtonGroup urlDestSelGroup = new ButtonGroup();
-//        urlDestSelGroup.add(urlDestSelLo);
-//        urlDestSelGroup.add(urlDestSelRe);
-//        JPanel urlDestSelContainer = new JPanel(new GridLayout(1,2));
-//        urlDestSelContainer.add(urlDestSelLo);
-//        urlDestSelContainer.add(urlDestSelRe);
 
 
         // Registering enclosed items
-//        container.add(urlDestSelContainer,BorderLayout.WEST);
+
         container.add(urlTextField,BorderLayout.CENTER);
         container.add(urlActionButton,BorderLayout.EAST);
         // applying BorderLayout on atom items to instruct positioning
@@ -228,8 +220,7 @@ public class MainWindowView {
             int userSelection = fileChooser.showSaveDialog(panel);
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 java.io.File fileToSave = fileChooser.getSelectedFile();
-                // TODO: save logic missing
-                JOptionPane.showMessageDialog(panel, "Selected file: " + fileToSave.getAbsolutePath());
+                backend.onSaveClicked(fileToSave);
             }
         });
         return panel;

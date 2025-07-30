@@ -33,6 +33,7 @@ public class MainWindow {
 
     private static void attachLFSelector(JFrame frame){
         // toolbar for L&F
+        // TODO: Known issue with LF that it messes with keybindings (Maps)
         LookAndFeelSelectorGroup lookAndFeelSelector = new LookAndFeelSelectorGroup(frame);
         // optional listener to handle L&F changes
         lookAndFeelSelector.addChangeListener(e -> {
