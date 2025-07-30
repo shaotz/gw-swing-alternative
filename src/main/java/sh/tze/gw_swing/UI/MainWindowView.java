@@ -3,20 +3,42 @@ package sh.tze.gw_swing.UI;
 import sh.tze.gw_swing.UI.Backend.MainWindowBackend;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Decorator;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
-import sh.tze.gw_swing.UI.SuggestionAdapter.Suggestion;
 import sh.tze.gw_swing.UI.Widgets.FilterWidgetGroup;
 import sh.tze.gw_swing.UI.Widgets.TextDisplayPanel;
-import sh.tze.gw_swing.UI.Widgets.TextListDisplay;
+import sh.tze.gw_swing.UI.Widgets.TextDisplayList;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MainWindowView {
-    private JPanel mainPanel;
-    private  JTextField urlTextField;
-    private  TextDisplayPanel textDisplayPanel;
-    private  JLabel statusLabel;
-    private  JProgressBar progressBar;
+    private final JPanel mainPanel;
+    private JTextField urlTextField;
+    private TextDisplayPanel textDisplayPanel;
+
+    private JLabel statusLabel;
+    private JProgressBar progressBar;
+
+    private JCheckBox sel_cs;
+    private JRadioButton sel_ws;
+    private JRadioButton sel_nw;
+    private JTextField tf_range_l;
+    private JTextField tf_range_r;
+
+    private JTextField tf_wf;
+    private JTextField tf_pos;
+    private JTextField tf_lemma;
+
+    private JCheckBox sel_wf;
+    private JCheckBox sel_pos;
+    private JCheckBox sel_lemma;
+
+    private TextDisplayList urlHistoryList;
+    private TextDisplayList filterSchemeHistoryList;
+
+    private DefaultListModel<String> urlHistoryListModel;
+    private DefaultListModel<String> filterSchemeHistoryListModel;
 
     private  MainWindowBackend backend;
 
@@ -44,18 +66,19 @@ public class MainWindowView {
 
     //<editor-fold desc="Flattened tree definition Side L: Section Above(A)">
     private JPanel createMWPanelSectA(){
-//      JPanel sect = new JPanel(new GridLayout(2,3));
-        Color color = new Color(0xF6, 0xC9, 0xCC);
 
         JPanel container = new JPanel(new BorderLayout());
-        container.setBackground(color);
 
-        JRadioButton selectCaseButton = new JRadioButton("Case Sensitive");
+        JCheckBox selectCaseButton = new JCheckBox("Case Sensitive");
         JRadioButton wholeSentenceButton = new JRadioButton("Whole Sentence");
         JRadioButton numOfNeighbors = new JRadioButton("# of Neighbor Words");
 
+        ButtonGroup filterRangeGroup = new ButtonGroup();
+        filterRangeGroup.add(numOfNeighbors);
+        filterRangeGroup.add(wholeSentenceButton);
+        filterRangeGroup.setSelected(wholeSentenceButton.getModel(), true);
+
         JPanel neighborPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        neighborPanel.setBackground(color);
         // Left input
         JLabel leftNum = new JLabel("Left:");
         JTextField leftTextField = new JTextField(5); // 5 columns width
@@ -63,6 +86,9 @@ public class MainWindowView {
         // Right input
         JLabel rightNum = new JLabel("Right:");
         JTextField rightTextField = new JTextField(5); // 5 columns width
+
+        leftTextField.setText("1");
+        rightTextField.setText("1");
 
         // Add components to neighbor panel
         neighborPanel.add(numOfNeighbors);
@@ -73,7 +99,6 @@ public class MainWindowView {
         neighborPanel.add(rightNum);
         neighborPanel.add(rightTextField);
 
-//        GridLayout gl = new GridLayout(1,1);
 //        panel for the center components
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         centerPanel.add(wholeSentenceButton);
@@ -83,6 +108,13 @@ public class MainWindowView {
         container.add(createURLSelectorPanel(), BorderLayout.NORTH);
         container.add(selectCaseButton, BorderLayout.WEST);
         container.add(centerPanel, BorderLayout.CENTER);
+
+        sel_cs = selectCaseButton;
+        sel_ws = wholeSentenceButton;
+        sel_nw = numOfNeighbors;
+
+        tf_range_l = leftTextField;
+        tf_range_r = rightTextField;
 
         return container;
     }
@@ -95,21 +127,14 @@ public class MainWindowView {
         JButton urlActionButton = new JButton("Open");
         urlActionButton.addActionListener(backend.new URLOpenListener(urlTextField)); // this static and non-static shit
 
-        JRadioButton urlDestSelLo = new JRadioButton("Local File");
-        JRadioButton urlDestSelRe = new JRadioButton("Wiki URL");
-        var historyProvider = new Provider.TextHistorySuggestionProvider();
-        Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
-                historyProvider);
-        ButtonGroup urlDestSelGroup = new ButtonGroup();
-        urlDestSelGroup.add(urlDestSelLo);
-        urlDestSelGroup.add(urlDestSelRe);
-        JPanel urlDestSelContainer = new JPanel(new GridLayout(1,2));
-        urlDestSelContainer.add(urlDestSelLo);
-        urlDestSelContainer.add(urlDestSelRe);
+//        var historyProvider = new Provider.TextHistorySuggestionProvider();
+//        Decorator.TextSuggestionDecorator.doDecorationOn(urlTextField,
+//                historyProvider);
+
 
 
         // Registering enclosed items
-        container.add(urlDestSelContainer,BorderLayout.WEST);
+
         container.add(urlTextField,BorderLayout.CENTER);
         container.add(urlActionButton,BorderLayout.EAST);
         // applying BorderLayout on atom items to instruct positioning
@@ -130,15 +155,6 @@ public class MainWindowView {
     }
 
     private JPanel createPrimaryTextDisplay(){
-//        JPanel panel = new JPanel(new BorderLayout());
-//
-//        JTextArea mainTextArea = new JTextArea();
-//        JScrollPane encapsulator = new JScrollPane(mainTextArea);
-//        mainTextArea.setLineWrap(true);
-//        mainTextArea.setWrapStyleWord(true);
-//
-//        panel.add(encapsulator,BorderLayout.CENTER);
-//        return panel;
         TextDisplayPanel tdp = new TextDisplayPanel();
         textDisplayPanel = tdp;
         return tdp;
@@ -149,10 +165,14 @@ public class MainWindowView {
         // Will just operate on constraint buffer `gbc`
         GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this LOL
 
-//        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
         JButton filterActionButton = new JButton("Filter");
         JButton filterResetButton = new JButton("Reset");
+        filterActionButton.addActionListener(e -> {
+            backend.onFilterClicked();
+        });
+        filterResetButton.addActionListener(e -> {
+            backend.onResetClicked();
+        });
         JButton masterSaveButton = new JButton("Save as XML");
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 5));
@@ -193,13 +213,22 @@ public class MainWindowView {
         gbc.insets = new Insets(5, 5, 5, 5);
         panel.add(masterSaveButton, gbc);
 
+        // Add file selector to masterSaveButton
+        masterSaveButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save as XML");
+            int userSelection = fileChooser.showSaveDialog(panel);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                backend.onSaveClicked(fileToSave);
+            }
+        });
         return panel;
     }
 
     private JPanel initFilterSection() {
         JPanel section = new JPanel(); // removed a confusing declaration
         JPanel keywordFilterPanel = new JPanel();
-        JPanel adjustmentPanel = new JPanel(); //TODO
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
@@ -207,13 +236,20 @@ public class MainWindowView {
         FilterWidgetGroup posFilter = new FilterWidgetGroup("POS Tag", "Filter for POS tags...");
         FilterWidgetGroup lemmaFilter = new FilterWidgetGroup("Lemma", "Filter for lemma...");
 
+        sel_wf = wordFilter.getCheckBox();
+        sel_pos = posFilter.getCheckBox();
+        sel_lemma = lemmaFilter.getCheckBox();
+
+        tf_wf = wordFilter.getTextField();
+        tf_pos = posFilter.getTextField();
+        tf_lemma = lemmaFilter.getTextField();
 
         Decorator.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getWFSuggestionFromNLPResult));
         Decorator.TextSuggestionDecorator.doDecorationOn(posFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getPOSSuggestionFromNLPResult));
         Decorator.TextSuggestionDecorator.doDecorationOn(lemmaFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getLemmaSuggestionFromNLPResult));
 
         keywordFilterPanel.add(wordFilter);
         keywordFilterPanel.add(posFilter);
@@ -227,11 +263,44 @@ public class MainWindowView {
         JPanel infoPanel = new JPanel();
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+
         String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet","...", "", "Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet",};
-        JScrollPane listSP1 = new JScrollPane(new TextListDisplay<>(loremipsum));
-        JScrollPane listSP2 = new JScrollPane(new TextListDisplay<>(loremipsum.clone()));
-        infoPanel.add(listSP1);
-        infoPanel.add(listSP2);
+
+        DefaultListModel<String> lm1 = new DefaultListModel<>();
+        DefaultListModel<String> lm2 = new DefaultListModel<>();
+        var tdl1 = new TextDisplayList<>(lm1);
+        var tdl2 = new TextDisplayList<>(lm2);
+        JScrollPane corpusHistoryPane = new JScrollPane(tdl1);
+        JScrollPane filterSchemeHistoryPane = new JScrollPane(tdl2);
+
+        tdl1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // Double-click
+                    backend.onURLListEntryActivated();
+                }
+            }
+        });
+        tdl2.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // Double-click
+                    backend.onFilterSchemeListEntryActivated();
+                }
+            }
+        });
+
+        lm1.addElement("URL History");
+        lm2.addElement("Filter Scheme History");
+
+        urlHistoryList = tdl1;
+        filterSchemeHistoryList = tdl2;
+        urlHistoryListModel = lm1;
+        filterSchemeHistoryListModel = lm2;
+
+
+        infoPanel.add(corpusHistoryPane);
+        infoPanel.add(filterSchemeHistoryPane);
 
         return infoPanel;
     }
@@ -257,5 +326,65 @@ public class MainWindowView {
 
     public MainWindowBackend getBackend() {
         return backend;
+    }
+
+    public JCheckBox getSel_cs() {
+        return sel_cs;
+    }
+
+    public JRadioButton getSel_ws() {
+        return sel_ws;
+    }
+
+    public JRadioButton getSel_nw() {
+        return sel_nw;
+    }
+
+    public JTextField getTf_range_l() {
+        return tf_range_l;
+    }
+
+    public JTextField getTf_range_r() {
+        return tf_range_r;
+    }
+
+    public JTextField getTf_wf() {
+        return tf_wf;
+    }
+
+    public JTextField getTf_pos() {
+        return tf_pos;
+    }
+
+    public JTextField getTf_lemma() {
+        return tf_lemma;
+    }
+
+    public JCheckBox getSel_wf() {
+        return sel_wf;
+    }
+
+    public JCheckBox getSel_pos() {
+        return sel_pos;
+    }
+
+    public JCheckBox getSel_lemma() {
+        return sel_lemma;
+    }
+
+    public TextDisplayList getUrlHistoryList() {
+        return urlHistoryList;
+    }
+
+    public TextDisplayList getFilterSchemeHistoryList() {
+        return filterSchemeHistoryList;
+    }
+
+    public DefaultListModel<String> getFilterSchemeHistoryListModel() {
+        return filterSchemeHistoryListModel;
+    }
+
+    public DefaultListModel<String> getUrlHistoryListModel() {
+        return urlHistoryListModel;
     }
 }

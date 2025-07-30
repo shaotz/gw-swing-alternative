@@ -2,7 +2,7 @@ package com.lexparser.scraper.nlp;
 
 import java.util.List;
 
-class SearchResult {
+public class SearchResult {
     private final int index;
     private final List<AnnotatedToken> sentence;
 

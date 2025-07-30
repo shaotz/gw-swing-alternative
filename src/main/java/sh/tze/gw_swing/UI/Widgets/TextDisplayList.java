@@ -5,7 +5,7 @@ import java.awt.*;
 import java.util.Vector;
 
 // E for Element (Type)
-public class TextListDisplay<E> extends JList {
+public class TextDisplayList<E> extends JList {
     // Default styling constants
     private static final Color HEADER_BACKGROUND = Color.LIGHT_GRAY;
     private static final Color HEADER_FOREGROUND = Color.DARK_GRAY;
@@ -14,16 +14,17 @@ public class TextListDisplay<E> extends JList {
     /**
      * Creates an empty TextListDisplay with protected header functionality
      */
-    public TextListDisplay() {
+    public TextDisplayList() {
         super();
         initializeComponent();
+
     }
 
     /**
      * Creates a TextListDisplay with legacy array data
      * @param listData array of data items to display
      */
-    public TextListDisplay(E[] listData) {
+    public TextDisplayList(E[] listData) {
         super(listData);
         initializeComponent();
     }
@@ -32,7 +33,7 @@ public class TextListDisplay<E> extends JList {
      * Creates a TextListDisplay with Vector data
      * @param listData Vector of data items to display
      */
-    public TextListDisplay(Vector<? extends E> listData) {
+    public TextDisplayList(Vector<? extends E> listData) {
         super(listData);
         initializeComponent();
     }
@@ -41,7 +42,7 @@ public class TextListDisplay<E> extends JList {
      * Creates a TextListDisplay with custom ListModel
      * @param dataModel the ListModel to use
      */
-    public TextListDisplay(ListModel<E> dataModel) {
+    public TextDisplayList(ListModel<E> dataModel) {
         super(dataModel);
         initializeComponent();
     }

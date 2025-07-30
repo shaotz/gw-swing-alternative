@@ -109,6 +109,8 @@ public class LookAndFeelSelectorGroup extends JPanel {
             }
             ex.printStackTrace();
         }
+
+
     }
 
     //<editor-fold desc="API Definition for LookAndFeelSelectorGroup">
