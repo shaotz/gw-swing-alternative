@@ -3,13 +3,14 @@ package sh.tze.gw_swing.UI;
 import sh.tze.gw_swing.UI.Backend.MainWindowBackend;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Decorator;
 import sh.tze.gw_swing.UI.SuggestionAdapter.Provider;
-import sh.tze.gw_swing.UI.SuggestionAdapter.Suggestion;
 import sh.tze.gw_swing.UI.Widgets.FilterWidgetGroup;
 import sh.tze.gw_swing.UI.Widgets.TextDisplayPanel;
-import sh.tze.gw_swing.UI.Widgets.TextListDisplay;
+import sh.tze.gw_swing.UI.Widgets.TextDisplayList;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MainWindowView {
     private final JPanel mainPanel;
@@ -33,6 +34,11 @@ public class MainWindowView {
     private JCheckBox sel_pos;
     private JCheckBox sel_lemma;
 
+    private TextDisplayList urlHistoryList;
+    private TextDisplayList filterSchemeHistoryList;
+
+    private DefaultListModel<String> urlHistoryListModel;
+    private DefaultListModel<String> filterSchemeHistoryListModel;
 
     private  MainWindowBackend backend;
 
@@ -267,11 +273,44 @@ public class MainWindowView {
         JPanel infoPanel = new JPanel();
 
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+
         String[] loremipsum = {"This is a placeholder header", "Lorem ipsum dolor sit amet","...", "", "Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet","Lorem ipsum dolor sit amet",};
-        JScrollPane listSP1 = new JScrollPane(new TextListDisplay<>(loremipsum));
-        JScrollPane listSP2 = new JScrollPane(new TextListDisplay<>(loremipsum.clone()));
-        infoPanel.add(listSP1);
-        infoPanel.add(listSP2);
+
+        DefaultListModel<String> lm1 = new DefaultListModel<>();
+        DefaultListModel<String> lm2 = new DefaultListModel<>();
+        var tdl1 = new TextDisplayList<>(lm1);
+        var tdl2 = new TextDisplayList<>(lm2);
+        JScrollPane corpusHistoryPane = new JScrollPane(tdl1);
+        JScrollPane filterSchemeHistoryPane = new JScrollPane(tdl2);
+
+        tdl1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // Double-click
+                    backend.onURLListEntryActivated();
+                }
+            }
+        });
+        tdl2.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // Double-click
+                    backend.onFilterSchemeListEntryActivated();
+                }
+            }
+        });
+
+        lm1.addElement("URL History");
+        lm2.addElement("Filter Scheme History");
+
+        urlHistoryList = tdl1;
+        filterSchemeHistoryList = tdl2;
+        urlHistoryListModel = lm1;
+        filterSchemeHistoryListModel = lm2;
+
+
+        infoPanel.add(corpusHistoryPane);
+        infoPanel.add(filterSchemeHistoryPane);
 
         return infoPanel;
     }
@@ -341,5 +380,21 @@ public class MainWindowView {
 
     public JCheckBox getSel_lemma() {
         return sel_lemma;
+    }
+
+    public TextDisplayList getUrlHistoryList() {
+        return urlHistoryList;
+    }
+
+    public TextDisplayList getFilterSchemeHistoryList() {
+        return filterSchemeHistoryList;
+    }
+
+    public DefaultListModel<String> getFilterSchemeHistoryListModel() {
+        return filterSchemeHistoryListModel;
+    }
+
+    public DefaultListModel<String> getUrlHistoryListModel() {
+        return urlHistoryListModel;
     }
 }

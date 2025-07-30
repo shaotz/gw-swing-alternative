@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -26,14 +27,23 @@ public class MainWindowBackend {
     private boolean isCorpusNewlyInstalled;
     private NLPProcessing nlpres;
 
-    private final List<String> urlhist = new ArrayList<>();
-    private final List<NLPProcessing> corpushist = new ArrayList<>();
-    private NLPProcessing current;
+    private final List<String> urlHistory = new ArrayList<>();
+    // L<L<AT>> as a document. NLPProcessing contains a L<L<AT>>. L<L<L<AT>>> as set of document
+//    private final List<NLPProcessing> corpusHistory = new ArrayList<>();
+    private final HashMap<String,NLPProcessing> corpusHistory = new HashMap<>(); // now linking them together as well
+    // and don't ever think to remove repetition here. It's web content.
+    // corpushist is updated on new corpus load, schemehist is updated every new search.
+    // to align corpushist with schemehist what about using dictionary
+    private final HashMap<NLPProcessing,List<filterScheme>> schemeHistory = new HashMap<>(); // updated is aligned with `corpusHistory`
+    private final List<filterScheme> currentSchemeHistory = new ArrayList<>(); // to recreate the search results
+
+    private boolean f_first; // although just realized it is possible to use isCorpusNewlyInstalled to lock schemeHistory, but iCNI is hooked rather weirdly(my bad) so use a dedicated one.
 
     public MainWindowBackend(MainWindowView view) {
         mwView = view;
         this.corpus = "";
         this.isCorpusNewlyInstalled = false;
+        f_first = true;
         setup();
     }
 
@@ -52,22 +62,65 @@ public class MainWindowBackend {
         }
         doConversion();
         present(); // only 10ms. modern microarchitecture. wow.
-        //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn
+        //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn  <no more relevant>
     }
-
     public void onFilterClicked(){
-        presentFilter();
+        presentFiltering();
+        updateHistoryPaneOnSchemeChange();
     }
-
     public void onResetClicked(){
         if(corpus == null || nlpres == null ){
             return;
         }
         present();
     }
+    public void onSaveClicked(){
+        if(corpus == null || nlpres == null ){
+
+        }
+    }
+    public void onURLListEntryActivated(){
+        var corpusHistoryList = mwView.getUrlHistoryList();
+        var listModel = mwView.getUrlHistoryListModel();
+
+        String selectedURL = (String) corpusHistoryList.getSelectedData();
+        NLPProcessing referencedDoc = corpusHistory.get(selectedURL);
+        nlpres = referencedDoc;
+        present();
+    }
+    public void onFilterSchemeListEntryActivated(){
+        var filterSchemeList = mwView.getFilterSchemeHistoryList();
+        var listModel = mwView.getFilterSchemeHistoryListModel();
+
+        String selectedScheme = (String) filterSchemeList.getSelectedData();
+        filterScheme fs = fromStringAsListEntry(selectedScheme);
+        presentFiltering(fs);
+    }
+    private void updateHistoryPaneOnSchemeChange(){ //idealy should be triggered on new_corpus, new_filterScheme
+        var filterSchemeHistoryList = mwView.getFilterSchemeHistoryList();
+        var listModel =  mwView.getFilterSchemeHistoryListModel();
+
+        var fs = currentSchemeHistory.get(currentSchemeHistory.size()-1);
+        listModel.addElement(fs.toStringAsListEntry());
+        filterSchemeHistoryList.setSelectedIndex(listModel.getSize() - 1);
+
+    }
+    private void updateURLPaneOnCorpusChange(){
+        var urlHistoryList =  mwView.getUrlHistoryList();
+        var listModel = mwView.getUrlHistoryListModel();
+
+        listModel.addElement(urlHistory.get(urlHistory.size()-1));
+        urlHistoryList.setSelectedIndex(listModel.getSize() - 1);
+    }
     private void doConversion(){
-        corpushist.add(current);
-        current = nlpres;
+        if(f_first){
+            corpusHistory.put(urlHistory.get(0),nlpres); //i know, i know
+            f_first = false;
+        }else{
+            corpusHistory.put(urlHistory.get(urlHistory.size()-1),nlpres);
+            schemeHistory.put(nlpres, currentSchemeHistory);
+        }
+
         var doc = nlpres.getWordSentences();
         List<List<PresentableWord>> w = new ArrayList<>(doc.size());
         for(var sentence : doc){
@@ -88,29 +141,15 @@ public class MainWindowBackend {
         sb.append("<html><body style=\"white-space: nowrap;\">");
         for(int i = 0; i < nlpres.getWordSentences().size(); i++){
             sb.append(parseSentence(nlpres.getWordSentences().get(i)));
-//            StringBuilder l1 = new StringBuilder();
-//            StringBuilder l2 = new StringBuilder();
-//            StringBuilder l3 = new StringBuilder();
-//            for(int j = 0; j < nlpres.getWordSentences().get(i).size(); j++){
-//                var w = nlpres.getWordSentences().get(i).get(j);
-//                l1.append(w.getForm() + " ");
-//                l2.append(w.getLemma() + " ");
-//                l3.append(w.getPos() + " ");
-//            }
-//            sb.append(l1);
-//            sb.append("<br>");
-//            sb.append(l2);
-//            sb.append("<br>");
-//            sb.append(l3);
-//            sb.append("<br>");
-//            sb.append("<hr>");
         }
         sb.append("</body></html>");
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
 
-    private void presentFilter(){
-        List<List<SearchResult>> results = doFilter(obtainFilterScheme());
+    private void presentFiltering(){
+        filterScheme fs = obtainFilterScheme();
+//        currentSchemeHistory.add(fs); // moved to obtainFilterScheme(), this makes sure that I can use present() and presentFilter() as standalone
+        List<List<SearchResult>> results = doFilter(fs);
         StringBuilder sb = new StringBuilder();
         sb.append("<html><body style=\"white-space: nowrap;\">");
         for(var identity : results){
@@ -123,7 +162,18 @@ public class MainWindowBackend {
         sb.append("</body></html>");
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
-
+    private void presentFiltering(filterScheme fs){
+        List<List<SearchResult>> results = doFilter(fs);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html><body style=\"white-space: nowrap;\">");
+        for(var identity : results){
+            for(var occurrence : identity){
+                sb.append(parseSentence(occurrence));
+            }
+        }
+        sb.append("</body></html>");
+        mwView.getTextDisplayPanel().setText(sb.toString());
+    }
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }
@@ -135,10 +185,19 @@ public class MainWindowBackend {
         isCorpusNewlyInstalled = false;
         return corpus;
     }
+    @Deprecated
     public void setCorpus(String corpus) {
         String oldCorpus = this.corpus;
         this.corpus = corpus;
         isCorpusNewlyInstalled = true;
+        pcs.firePropertyChange("corpus", oldCorpus, corpus);
+    }
+    public void setCorpusWithURL(String corpus, String url) {
+        String oldCorpus = this.corpus;
+        this.corpus = corpus;
+        isCorpusNewlyInstalled = true;
+        urlHistory.add(url);
+        updateURLPaneOnCorpusChange();
         pcs.firePropertyChange("corpus", oldCorpus, corpus);
     }
 
@@ -167,13 +226,13 @@ public class MainWindowBackend {
     //https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_URL
     public void dispatchURL(String url) { // oof, debate over whether to lazy-load content
         if(url.matches(RemotePolicy)) {
-            setCorpus(WikipediaScraper.scrapeContent(url));
-            urlhist.add(url);
+            setCorpusWithURL(WikipediaScraper.scrapeContent(url),url);
+//            if(isCorpusNewlyInstalled) urlHistory.add(url); //  to ensure atomic alignment with corpusHistory ('scraper' can throw, and this might be a failed url)
         }
         else if(url.matches(LocalPolicy)){ // Sorry but only '/' as path separator is allowed, bye NT/Win32, welcome POSIX
             try {
-                setCorpus(java.nio.file.Files.readString(java.nio.file.Path.of(url)));
-                urlhist.add(url);
+                setCorpusWithURL(java.nio.file.Files.readString(java.nio.file.Path.of(url)),url);
+//                if(isCorpusNewlyInstalled) urlHistory.add(url);
             } catch (java.io.IOException ex) { // sad to emit an orphan dialog
                 JOptionPane.showMessageDialog(null, "Failed to read file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -221,7 +280,21 @@ public class MainWindowBackend {
         of_neighbour,
         _reserved
     }
-    record filterScheme(boolean caseSensitive, _filter_range_scheme rs, int l, int r, String wf, String pos, String lemma){};
+    record filterScheme(boolean caseSensitive, _filter_range_scheme rs, int l, int r, String wf, String pos, String lemma){
+        public String toStringAsListEntry() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("WF=\"" + wf + "\"");
+            sb.append(",Lemma=\"" + lemma + "\"");
+            sb.append(",POS=\"" + pos + "\"");
+            sb.append(switch(rs){
+                case whole_sentence ->  ",whole_sentence";
+                case of_neighbour ->  ",of_neighbour=\"" + l + ":" + r + "\"";
+                case _reserved ->  ",(invalid)";
+            });
+            if(caseSensitive) sb.append(",case-sensitive");
+            return sb.toString();
+        }
+    };
 
     public filterScheme obtainFilterScheme(){
         boolean caseSensitive = false;
@@ -241,7 +314,9 @@ public class MainWindowBackend {
         String pos = mwView.getSel_pos().isSelected() ? mwView.getTf_pos().getText() : "";
         String lemma = mwView.getSel_lemma().isSelected() ? mwView.getTf_lemma().getText() : "";
 
-        return new filterScheme(caseSensitive,rs,l,r,wf,pos,lemma);
+        var fs = new filterScheme(caseSensitive,rs,l,r,wf,pos,lemma);
+        currentSchemeHistory.add(fs);
+        return fs;
     }
 
     public List<List<SearchResult>> doFilter(filterScheme fs){
@@ -389,5 +464,40 @@ public class MainWindowBackend {
         return parseSentence(sr.getSentence(),sr.getIndex());
     }
 
+    // some dirty works here
+    public static filterScheme fromStringAsListEntry(String listEntry) {
+        boolean caseSensitive = false;
+        _filter_range_scheme rs = _filter_range_scheme._reserved;
+        int l = 0, r = 0;
+        String wf = "", pos = "", lemma = "";
+        // csv hoooray
+        String[] parts = listEntry.split(",");
+
+        for (String part : parts) {
+            part = part.trim();
+
+            if (part.startsWith("WF=\"") && part.endsWith("\"")) {
+                wf = part.substring(4, part.length() - 1);
+            } else if (part.startsWith("Lemma=\"") && part.endsWith("\"")) {
+                lemma = part.substring(7, part.length() - 1);
+            } else if (part.startsWith("POS=\"") && part.endsWith("\"")) {
+                pos = part.substring(5, part.length() - 1);
+            } else if (part.equals("whole_sentence")) {
+                rs = _filter_range_scheme.whole_sentence;
+            } else if (part.startsWith("of_neighbour=\"") && part.endsWith("\"")) {
+                String rangeStr = part.substring(14, part.length() - 1);
+                String[] rangeParts = rangeStr.split(":");
+                if (rangeParts.length == 2) {
+                    l = Integer.parseInt(rangeParts[0]);
+                    r = Integer.parseInt(rangeParts[1]);
+                }
+                rs = _filter_range_scheme.of_neighbour;
+            } else if (part.equals("case-sensitive")) {
+                caseSensitive = true;
+            }
+        }
+
+        return new filterScheme(caseSensitive, rs, l, r, wf, pos, lemma);
+    }
 
 }
