@@ -12,11 +12,27 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainWindowView {
-    private JPanel mainPanel;
-    private  JTextField urlTextField;
-    private  TextDisplayPanel textDisplayPanel;
-    private  JLabel statusLabel;
-    private  JProgressBar progressBar;
+    private final JPanel mainPanel;
+    private JTextField urlTextField;
+    private TextDisplayPanel textDisplayPanel;
+
+    private JLabel statusLabel;
+    private JProgressBar progressBar;
+
+    private JCheckBox sel_cs;
+    private JRadioButton sel_ws;
+    private JRadioButton sel_nw;
+    private JTextField tf_range_l;
+    private JTextField tf_range_r;
+
+    private JTextField tf_wf;
+    private JTextField tf_pos;
+    private JTextField tf_lemma;
+
+    private JCheckBox sel_wf;
+    private JCheckBox sel_pos;
+    private JCheckBox sel_lemma;
+
 
     private  MainWindowBackend backend;
 
@@ -44,11 +60,8 @@ public class MainWindowView {
 
     //<editor-fold desc="Flattened tree definition Side L: Section Above(A)">
     private JPanel createMWPanelSectA(){
-//      JPanel sect = new JPanel(new GridLayout(2,3));
-        Color color = new Color(0xF6, 0xC9, 0xCC);
 
         JPanel container = new JPanel(new BorderLayout());
-        container.setBackground(color);
 
         JCheckBox selectCaseButton = new JCheckBox("Case Sensitive");
         JRadioButton wholeSentenceButton = new JRadioButton("Whole Sentence");
@@ -57,9 +70,9 @@ public class MainWindowView {
         ButtonGroup filterRangeGroup = new ButtonGroup();
         filterRangeGroup.add(numOfNeighbors);
         filterRangeGroup.add(wholeSentenceButton);
+        filterRangeGroup.setSelected(wholeSentenceButton.getModel(), true);
 
         JPanel neighborPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        neighborPanel.setBackground(color);
         // Left input
         JLabel leftNum = new JLabel("Left:");
         JTextField leftTextField = new JTextField(5); // 5 columns width
@@ -67,6 +80,9 @@ public class MainWindowView {
         // Right input
         JLabel rightNum = new JLabel("Right:");
         JTextField rightTextField = new JTextField(5); // 5 columns width
+
+        leftTextField.setText("1");
+        rightTextField.setText("1");
 
         // Add components to neighbor panel
         neighborPanel.add(numOfNeighbors);
@@ -77,7 +93,6 @@ public class MainWindowView {
         neighborPanel.add(rightNum);
         neighborPanel.add(rightTextField);
 
-//        GridLayout gl = new GridLayout(1,1);
 //        panel for the center components
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         centerPanel.add(wholeSentenceButton);
@@ -87,6 +102,13 @@ public class MainWindowView {
         container.add(createURLSelectorPanel(), BorderLayout.NORTH);
         container.add(selectCaseButton, BorderLayout.WEST);
         container.add(centerPanel, BorderLayout.CENTER);
+
+        sel_cs = selectCaseButton;
+        sel_ws = wholeSentenceButton;
+        sel_nw = numOfNeighbors;
+
+        tf_range_l = leftTextField;
+        tf_range_r = rightTextField;
 
         return container;
     }
@@ -135,7 +157,6 @@ public class MainWindowView {
     }
 
     private JPanel createPrimaryTextDisplay(){
-
         TextDisplayPanel tdp = new TextDisplayPanel();
         textDisplayPanel = tdp;
         return tdp;
@@ -146,10 +167,14 @@ public class MainWindowView {
         // Will just operate on constraint buffer `gbc`
         GridBagConstraints gbc = new GridBagConstraints(); // Iseri Nina wrote this LOL
 
-//        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
         JButton filterActionButton = new JButton("Filter");
         JButton filterResetButton = new JButton("Reset");
+        filterActionButton.addActionListener(e -> {
+            backend.onFilterClicked();
+        });
+        filterResetButton.addActionListener(e -> {
+            backend.onResetClicked();
+        });
         JButton masterSaveButton = new JButton("Save as XML");
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 5));
@@ -207,7 +232,7 @@ public class MainWindowView {
     private JPanel initFilterSection() {
         JPanel section = new JPanel(); // removed a confusing declaration
         JPanel keywordFilterPanel = new JPanel();
-        JPanel adjustmentPanel = new JPanel(); //TODO
+//        JPanel adjustmentPanel = new JPanel(); //TODO
 
         keywordFilterPanel.setLayout(new BoxLayout(keywordFilterPanel, BoxLayout.Y_AXIS));
 
@@ -215,13 +240,20 @@ public class MainWindowView {
         FilterWidgetGroup posFilter = new FilterWidgetGroup("POS Tag", "Filter for POS tags...");
         FilterWidgetGroup lemmaFilter = new FilterWidgetGroup("Lemma", "Filter for lemma...");
 
+        sel_wf = wordFilter.getCheckBox();
+        sel_pos = posFilter.getCheckBox();
+        sel_lemma = lemmaFilter.getCheckBox();
+
+        tf_wf = wordFilter.getTextField();
+        tf_pos = posFilter.getTextField();
+        tf_lemma = lemmaFilter.getTextField();
 
         Decorator.TextSuggestionDecorator.doDecorationOn(wordFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getWFSuggestionFromNLPResult));
         Decorator.TextSuggestionDecorator.doDecorationOn(posFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getPOSSuggestionFromNLPResult));
         Decorator.TextSuggestionDecorator.doDecorationOn(lemmaFilter.getTextField(),
-                new Provider.TextSuggestionProvider(Suggestion::getSpaceSplitSuggestions));
+                new Provider.TextSuggestionProvider(backend::getLemmaSuggestionFromNLPResult));
 
         keywordFilterPanel.add(wordFilter);
         keywordFilterPanel.add(posFilter);
@@ -265,5 +297,49 @@ public class MainWindowView {
 
     public MainWindowBackend getBackend() {
         return backend;
+    }
+
+    public JCheckBox getSel_cs() {
+        return sel_cs;
+    }
+
+    public JRadioButton getSel_ws() {
+        return sel_ws;
+    }
+
+    public JRadioButton getSel_nw() {
+        return sel_nw;
+    }
+
+    public JTextField getTf_range_l() {
+        return tf_range_l;
+    }
+
+    public JTextField getTf_range_r() {
+        return tf_range_r;
+    }
+
+    public JTextField getTf_wf() {
+        return tf_wf;
+    }
+
+    public JTextField getTf_pos() {
+        return tf_pos;
+    }
+
+    public JTextField getTf_lemma() {
+        return tf_lemma;
+    }
+
+    public JCheckBox getSel_wf() {
+        return sel_wf;
+    }
+
+    public JCheckBox getSel_pos() {
+        return sel_pos;
+    }
+
+    public JCheckBox getSel_lemma() {
+        return sel_lemma;
     }
 }

@@ -16,11 +16,11 @@ public class AnnotatedToken {
     public String getLemma() { return lemma; }
 
     public boolean equalsSelective(AnnotatedToken other) {
-        return this.lemma.equalsIgnoreCase(other.lemma);
+        return this.form.equalsIgnoreCase(other.form);
     }
 
     public boolean equalsSelectiveCaseSensitive(AnnotatedToken other) {
-        return this.lemma.equals(other.lemma);
+        return this.form.equals(other.form);
     }
 
     @Override
@@ -28,4 +28,14 @@ public class AnnotatedToken {
         return form + "/" + pos + "/" + lemma;
     }
 }
+
+/*
+    WHAT is `this.lemma.<method>`.
+    Why is so that only lemma be the deterministic identity of a whole word.
+    For a lemma you might have different wf and thus different pos.
+    The identity of a token should be WF, i.e. the attribute that carries maximum information.
+
+    Anyway this is inadequate for proper filtering. Leute schau den UI an.
+
+ */
 

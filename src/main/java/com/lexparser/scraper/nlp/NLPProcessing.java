@@ -124,7 +124,7 @@ public class NLPProcessing {
         }
     }
 
-
+    // why is this using AnnotatedToken, you could have chosen plain String
     public List<SearchResult> find(AnnotatedToken targetWord) {
         List<SearchResult> matches = new ArrayList<>();
         for (List<AnnotatedToken> sentence : wordSentences) {
