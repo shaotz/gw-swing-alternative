@@ -24,14 +24,20 @@ public class NLPProcessing {
     private static POSModel posModel;
     private static LemmatizerModel lemmaModel;
 
-    record ModelPaths(String tk, String lm, String pos, String sd){}
+    enum _path_type{
+        legacy,
+        maven
+    }
+    record ModelPaths(_path_type type,String tk, String lm, String pos, String sd){}
     private static ModelPaths mp_maven = new ModelPaths(
-            "opennlp-en-ud-ewt-tokens-1.3-2.5.4.bin",
-            "opennlp-en-ud-ewt-lemmas-1.3-2.5.4.bin",
-            "opennlp-en-ud-ewt-pos-1.3-2.5.4.bin",
-            "opennlp-en-ud-ewt-sentence-1.3-2.5.4.bin"
+            _path_type.maven,
+            "/opennlp-en-ud-ewt-tokens-1.3-2.5.4.bin",
+            "/opennlp-en-ud-ewt-lemmas-1.3-2.5.4.bin",
+            "/opennlp-en-ud-ewt-pos-1.3-2.5.4.bin",
+            "/opennlp-en-ud-ewt-sentence-1.3-2.5.4.bin"
     );
     private static ModelPaths mp_legacy = new ModelPaths(
+            _path_type.legacy,
             "en-token.bin",
             "en-lemmatizer.bin",
             "en-pos-maxent.bin",
@@ -46,25 +52,25 @@ public class NLPProcessing {
 
 
     // Load all models first
-    private static void loadModels() throws IOException {
+    private void loadModels() throws IOException {
         ModelPaths mp = mp_maven;
         if (sentenceModel == null) {
-            try (InputStream modelIn = new FileInputStream(mp.sd)) {
+            try (InputStream modelIn = mp.type == _path_type.maven? this.getClass().getResourceAsStream(mp.sd) : new FileInputStream(mp.sd)) {
                 sentenceModel = new SentenceModel(modelIn);
             }
         }
         if (tokenizerModel == null) {
-            try (InputStream modelIn = new FileInputStream(mp.tk)) {
+            try (InputStream modelIn = mp.type == _path_type.maven? this.getClass().getResourceAsStream(mp.tk) : new FileInputStream(mp.tk)) {
                 tokenizerModel = new TokenizerModel(modelIn);
             }
         }
         if (posModel == null) {
-            try (InputStream modelIn = new FileInputStream(mp.pos)) {
+            try (InputStream modelIn = mp.type == _path_type.maven? this.getClass().getResourceAsStream(mp.pos) : new FileInputStream(mp.pos)) {
                 posModel = new POSModel(modelIn);
             }
         }
         if (lemmaModel == null) {
-            try (InputStream modelIn = new FileInputStream(mp.lm)) {
+            try (InputStream modelIn = mp.type == _path_type.maven? this.getClass().getResourceAsStream(mp.lm) : new FileInputStream(mp.lm)) {
                 lemmaModel = new LemmatizerModel(modelIn);
             }
         }

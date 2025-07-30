@@ -3,9 +3,9 @@
     <output-path>$PROJECT_DIR$/out/artifacts/gw_swing_alternative_jar</output-path>
     <root id="archive" name="gw-swing-alternative.jar">
       <element id="module-output" name="gw-swing-alternative" />
-      <element id="library" level="project" name="Maven: org.apache.opennlp:opennlp-models-lemmatizer-en:1.3.0" />
-      <element id="library" level="project" name="Maven: org.apache.opennlp:opennlp-tools:2.3.0" />
+      <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:2.0.16" />
       <element id="library" level="project" name="Maven: org.jsoup:jsoup:1.21.1" />
+      <element id="library" level="project" name="Maven: org.apache.opennlp:opennlp-tools:2.5.0" />
     </root>
   </artifact>
 </component>

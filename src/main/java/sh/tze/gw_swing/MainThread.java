@@ -21,11 +21,9 @@ public class MainThread {
      - Why do I need a program entry point?
 
      Generally, it is better to separate UI thread with other threads.
+     If the UI thread had called a routine that will presumably take time to complete, it gets stuck (you have to wait for the routine to return).
      (This is why sometimes you are seeing 'beach ball' on MacOS and the rolling ring on Windows)
      Specifically with Swing, UI-related is expected to be run in the EDT, or the Event Dispatcher Thread.
      The main thread, that is, where the entry point is loaded onto, is guaranteed NOT to be the EDT.
 
-
-    Maybe you have already tested the application and found it working. That's great.
-    A working program always needs integration.
  */
