@@ -35,16 +35,17 @@ public class MainWindowBackend {
     // and don't ever think to remove repetition here. It's web content.
     // corpushist is updated on new corpus load, schemehist is updated every new search.
     // to align corpushist with schemehist what about using dictionary
-    private final HashMap<NLPProcessing,List<filterScheme>> schemeHistory = new HashMap<>(); // updated is aligned with `corpusHistory`
-    private final List<filterScheme> currentSchemeHistory = new ArrayList<>(); // to recreate the search results
+    private final HashMap<NLPProcessing,List<FilterScheme>> schemeHistory = new HashMap<>(); // updated is aligned with `corpusHistory`
+    private final List<FilterScheme> currentSchemeHistory = new ArrayList<>(); // to recreate the search results
 
     private boolean f_first; // although just realized it is possible to use isCorpusNewlyInstalled to lock schemeHistory, but iCNI is hooked rather weirdly(my bad) so use a dedicated one.
-
+    private boolean f_validScheme;
     public MainWindowBackend(MainWindowView view) {
         mwView = view;
         this.corpus = "";
         this.isCorpusNewlyInstalled = false;
         f_first = true;
+        f_validScheme = false;
         setup();
     }
 
@@ -82,7 +83,13 @@ public class MainWindowBackend {
             JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Please select at least one filter criterion.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        presentFiltering();
+        FilterScheme fs = obtainFilterScheme();
+        if(fs.isInvalid()){
+            String msg = "Attempt to filter with invalid keys. Maybe empty keys?";
+            JOptionPane.showMessageDialog(null, msg , "Invalid filter keys", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        presentFiltering(fs);
         updateFilterSchemePaneOnNewScheme();
     }
     public void onResetClicked(){
@@ -115,7 +122,7 @@ public class MainWindowBackend {
 
             // First add current filter scheme results if it exists
             if (!currentSchemeHistory.isEmpty()) {
-                filterScheme currentScheme = currentSchemeHistory.get(currentSchemeHistory.size() - 1);
+                FilterScheme currentScheme = currentSchemeHistory.get(currentSchemeHistory.size() - 1);
                 List<List<SearchResult>> results = doFilter(currentScheme);
 
                 if (!results.isEmpty() && !urlHistory.isEmpty()) {
@@ -130,10 +137,10 @@ public class MainWindowBackend {
                 NLPProcessing atCorpus = corpusHistory.get(url);
 
                 if (atCorpus != null) {
-                    List<filterScheme> filterSchemes = schemeHistory.get(atCorpus);
+                    List<FilterScheme> filterSchemes = schemeHistory.get(atCorpus);
 
                     if (filterSchemes != null && !filterSchemes.isEmpty()) {
-                        for (filterScheme scheme : filterSchemes) {
+                        for (FilterScheme scheme : filterSchemes) {
                             // Temporarily set nlpres to the historical corpus to filter correctly
                             NLPProcessing tempNlpres = nlpres;
                             nlpres = atCorpus;
@@ -166,9 +173,6 @@ public class MainWindowBackend {
                 JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(),
                         "No search results to save.", "Warning", JOptionPane.WARNING_MESSAGE);
             }
-            // ^^^^^ don't get distracted by popup lines
-        }catch (RuntimeException e){
-          JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e){
             JOptionPane.showMessageDialog(mwView.getTextDisplayPanel(), "Failed to save: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -196,10 +200,10 @@ public class MainWindowBackend {
         filterSchemeListModel.clear();
         filterSchemeListModel.addElement("Filter Scheme History");
 
-        List<filterScheme> schemes = schemeHistory.get(nlpres);
+        List<FilterScheme> schemes = schemeHistory.get(nlpres);
         if (schemes != null && !schemes.isEmpty()) {
             List<String> filterSchemeHistory = schemes.stream()
-                    .map(filterScheme::toStringAsListEntry)
+                    .map(FilterScheme::toStringAsListEntry)
                     .collect(Collectors.toList());
             filterSchemeListModel.addAll(filterSchemeHistory);
         }
@@ -211,7 +215,12 @@ public class MainWindowBackend {
         var listModel = mwView.getFilterSchemeHistoryListModel();
 
         String selectedScheme = (String) filterSchemeList.getSelectedData();
-        filterScheme fs = fromStringAsListEntry(selectedScheme);
+        FilterScheme fs = fromStringAsListEntry(selectedScheme);
+        if(fs.isInvalid()){
+            String msg = "Attempt to filter with invalid keys. Maybe empty keys?";
+            JOptionPane.showMessageDialog(null, msg , "Invalid filter keys", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         presentFiltering(fs);
     }
     private void updateFilterSchemePaneOnNewScheme(){ //idealy should be triggered on new_corpus, new_filterScheme
@@ -276,8 +285,9 @@ public class MainWindowBackend {
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
 
+    @Deprecated
     private void presentFiltering(){
-        filterScheme fs = obtainFilterScheme();
+        FilterScheme fs = obtainFilterScheme();
 //        currentSchemeHistory.add(fs); // moved to obtainFilterScheme(), this makes sure that I can use present() and presentFilter() as standalone
         List<List<SearchResult>> results = doFilter(fs);
         StringBuilder sb = new StringBuilder();
@@ -293,7 +303,7 @@ public class MainWindowBackend {
 
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
-    private void presentFiltering(filterScheme fs){
+    private void presentFiltering(FilterScheme fs){
         List<List<SearchResult>> results = doFilter(fs);
         StringBuilder sb = new StringBuilder();
         sb.append("<html><body style=\"white-space: nowrap;\">");
@@ -358,12 +368,10 @@ public class MainWindowBackend {
     public void dispatchURL(String url) { // oof, debate over whether to lazy-load content
         if(url.matches(RemotePolicy)) {
             setCorpusWithURL(WikipediaScraper.scrapeContent(url),url);
-//            if(isCorpusNewlyInstalled) urlHistory.add(url); //  to ensure atomic alignment with corpusHistory ('scraper' can throw, and this might be a failed url)
         }
         else if(url.matches(LocalPolicy)){ // Sorry but only '/' as path separator is allowed, bye NT/Win32, welcome POSIX
             try {
                 setCorpusWithURL(java.nio.file.Files.readString(java.nio.file.Path.of(url)),url);
-//                if(isCorpusNewlyInstalled) urlHistory.add(url);
             } catch (java.io.IOException ex) { // sad to emit an orphan dialog
                 JOptionPane.showMessageDialog(null, "Failed to read file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -406,12 +414,12 @@ public class MainWindowBackend {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    enum _filter_range_scheme {
+    enum FilterRangeSchemeEnum { // standardise naming since no longer a thought-of internal usage
         whole_sentence,
         of_neighbour,
         _reserved
     }
-    record filterScheme(boolean caseSensitive, _filter_range_scheme rs, int l, int r, String wf, String pos, String lemma){
+    record FilterScheme(boolean caseSensitive, FilterRangeSchemeEnum rs, int l, int r, String wf, String pos, String lemma){
         public String toStringAsListEntry() {
             StringBuilder sb = new StringBuilder();
             sb.append("WF=\"" + wf + "\"");
@@ -426,8 +434,8 @@ public class MainWindowBackend {
             return sb.toString();
         }
 
-        public static filterScheme getNullTemplate(){
-            return new filterScheme(false, _filter_range_scheme._reserved, 0, 0, "","","");
+        public static FilterScheme getNullTemplate(){
+            return new FilterScheme(false, FilterRangeSchemeEnum._reserved, 0, 0, "","","");
         }
 
         public boolean isInvalid(){
@@ -437,41 +445,39 @@ public class MainWindowBackend {
             return wf.isEmpty() && pos.isEmpty() && lemma.isEmpty();
         }
         public boolean hasInvalidRange(){
-            return rs.equals(_filter_range_scheme._reserved);
+            return rs.equals(FilterRangeSchemeEnum._reserved);
         }
-
-
     };
 
 
-    private void recordFilterScheme(List<filterScheme> hist, filterScheme fs){
+    private void recordFilterScheme(List<FilterScheme> hist, FilterScheme fs){
         hist.add(fs);
     }
-    public filterScheme obtainFilterScheme(){
+    public FilterScheme obtainFilterScheme(){
         boolean caseSensitive = false;
-        _filter_range_scheme rs;
+        FilterRangeSchemeEnum rs;
         int l = 0, r = 0;
 
         if(mwView.getSel_cs().isSelected()){
             caseSensitive = true;
         }
         if(mwView.getSel_ws().isSelected()){
-            rs = _filter_range_scheme.whole_sentence;
+            rs = FilterRangeSchemeEnum.whole_sentence;
         }else if(mwView.getSel_nw().isSelected()){
-            rs = _filter_range_scheme.of_neighbour;
+            rs = FilterRangeSchemeEnum.of_neighbour;
             l = Integer.parseInt(mwView.getTf_range_l().getText());
             r = Integer.parseInt(mwView.getTf_range_r().getText());
-        }else rs = _filter_range_scheme._reserved;
+        }else rs = FilterRangeSchemeEnum._reserved;
         String wf = mwView.getSel_wf().isSelected() ? mwView.getTf_wf().getText() : "";
         String pos = mwView.getSel_pos().isSelected() ? mwView.getTf_pos().getText() : "";
         String lemma = mwView.getSel_lemma().isSelected() ? mwView.getTf_lemma().getText() : "";
 
-        var fs = new filterScheme(caseSensitive,rs,l,r,wf,pos,lemma);
+        var fs = new FilterScheme(caseSensitive,rs,l,r,wf,pos,lemma);
         recordFilterScheme(currentSchemeHistory,fs);
         return fs;
     }
 
-    public List<List<SearchResult>> doFilter(filterScheme fs){
+    public List<List<SearchResult>> doFilter(FilterScheme fs){
         /*
             precedence seems fine, you have f(g(x)) = g(f(x))
             3 pass filtering
@@ -523,57 +529,68 @@ public class MainWindowBackend {
         // **solved here**, and also by adding forward validator
 //        else intermediate1 = nlpres.getWordSentences().stream().flatMap(List::stream).collect(Collectors.toList());
         else {
-            String msg = "Attempt to filter with empty keys.";
-            JOptionPane.showMessageDialog(null, msg , "Empty filter keys", JOptionPane.ERROR_MESSAGE);
             return new ArrayList<>();
         }
 
 
-        //pass 2 to apply lower precedence keys
+        //pass 2
         List<AnnotatedToken> intermediate2 = new ArrayList<>();
-        if(!fs.lemma().isBlank()) {
-            for(var w: intermediate1){
-                boolean matches = fs.caseSensitive() ?
-                        fs.lemma().equals(w.getLemma()) :
-                        fs.lemma().equalsIgnoreCase(w.getLemma());
-                if(matches) intermediate2.add(w);
-            }
-        } else if(!fs.pos().isBlank()) {
-            for(var w: intermediate1){
-                if(fs.pos().equals(w.getPos())) intermediate2.add(w);
-            }
-        } else intermediate2.addAll(intermediate1);
+        for (var w : intermediate1) {
+                boolean matches = true;
+                if (!fs.wf().isBlank()) {
+                    boolean wfMatch = fs.caseSensitive() ?
+                            fs.wf().equals(w.getForm()) :
+                            fs.wf().equalsIgnoreCase(w.getForm());
+                    matches = matches && wfMatch;
+                }
+                if (!fs.lemma().isBlank()) {
+                    boolean lemmaMatch = fs.caseSensitive() ?
+                            fs.lemma().equals(w.getLemma()) :
+                            fs.lemma().equalsIgnoreCase(w.getLemma());
+                    matches = matches && lemmaMatch;
+                }
+                if (!fs.pos().isBlank()) {
+                    matches = matches && fs.pos().equals(w.getPos());
+                }
 
+                if (matches) {
+                    if(!intermediate2.contains(w))
+                        intermediate2.add(w) ;
+                }
+        }
 
         // pass 3, range
-        List<List<SearchResult>> results = new ArrayList<>();
+        List<List<SearchResult>> hitsOfCurrentCorpus = new ArrayList<>();
 
         for(var w : intermediate2){
-            List<SearchResult> searchResults;
+            List<SearchResult> hits; // hits for a certain AnnotatedToken('w') in whole Corpus w.r.t. its originating sentence
             switch (fs.rs()) {
+                // **Culprit below: These find() family functions are currently matching only with WordForm as criteria.
+                // This would again, duplicate the result, i.e. R -> R^2
                 case whole_sentence:
                     if (fs.caseSensitive()) {
-                        searchResults = nlpres.findCaseSensitive(w);
+                        hits = nlpres.findCaseSensitive(w);
                     } else {
-                        searchResults = nlpres.find(w);
+                        hits = nlpres.find(w);
                     }
                     break;
                 case of_neighbour:
                     if (fs.caseSensitive()) {
-                        searchResults = nlpres.showNeighborsCaseSensitive(w, fs.l(), fs.r());
+                        hits = nlpres.showNeighborsCaseSensitive(w, fs.l(), fs.r());
                     } else {
-                        searchResults = nlpres.findMatchesWithNeighbors(w, fs.l(), fs.r());
+                        hits = nlpres.findMatchesWithNeighbors(w, fs.l(), fs.r());
                     }
                     break;
                 default:
-                    searchResults = new ArrayList<>();
+                    continue;
             }
-            if (!searchResults.isEmpty()) {
-                results.add(searchResults);
+            if (!hits.isEmpty()) {
+                hitsOfCurrentCorpus.add(hits);
             }
         }
 
-        return results;
+        System.err.println("1");
+        return hitsOfCurrentCorpus;
 
     }
 
@@ -630,14 +647,14 @@ public class MainWindowBackend {
     }
 
     // some dirty works here
-    public static filterScheme fromStringAsListEntry(String listEntry) {
+    public static FilterScheme fromStringAsListEntry(String listEntry) {
         boolean caseSensitive = false;
-        _filter_range_scheme rs = _filter_range_scheme.whole_sentence; // adjusted to whole_sentence for better compatibility with XML writes
+        // adjusted to whole_sentence for better compatibility with XML writes; catches '(invalid)'
+        FilterRangeSchemeEnum rs = FilterRangeSchemeEnum.whole_sentence;
         int l = 0, r = 0;
         String wf = "", pos = "", lemma = "";
         // csv hoooray
         String[] parts = listEntry.split(",");
-
         for (String part : parts) {
             part = part.trim();
 
@@ -648,7 +665,7 @@ public class MainWindowBackend {
             } else if (part.startsWith("POS=\"") && part.endsWith("\"")) {
                 pos = part.substring(5, part.length() - 1);
             } else if (part.equals("whole_sentence")) {
-                rs = _filter_range_scheme.whole_sentence;
+                rs = FilterRangeSchemeEnum.whole_sentence;
             } else if (part.startsWith("of_neighbour=\"") && part.endsWith("\"")) {
                 String rangeStr = part.substring(14, part.length() - 1);
                 String[] rangeParts = rangeStr.split(":");
@@ -656,13 +673,13 @@ public class MainWindowBackend {
                     l = Integer.parseInt(rangeParts[0]);
                     r = Integer.parseInt(rangeParts[1]);
                 }
-                rs = _filter_range_scheme.of_neighbour;
+                rs = FilterRangeSchemeEnum.of_neighbour;
             } else if (part.equals("case-sensitive")) {
                 caseSensitive = true;
             }
         }
 
-        return new filterScheme(caseSensitive, rs, l, r, wf, pos, lemma);
+        return new FilterScheme(caseSensitive, rs, l, r, wf, pos, lemma);
     }
 
 }

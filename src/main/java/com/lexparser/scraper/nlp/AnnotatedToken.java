@@ -15,17 +15,26 @@ public class AnnotatedToken {
     public String getPos() { return pos; }
     public String getLemma() { return lemma; }
 
-    public boolean equalsSelective(AnnotatedToken other) {
-        return this.form.equalsIgnoreCase(other.form);
+    public boolean equalsSelective(AnnotatedToken other)
+    {
+        return this.form.equalsIgnoreCase(other.form) &&  this.pos.equalsIgnoreCase(other.pos) && this.lemma.equalsIgnoreCase(other.lemma);
     }
 
     public boolean equalsSelectiveCaseSensitive(AnnotatedToken other) {
-        return this.form.equals(other.form);
+        return this.form.equals(other.form)  && this.pos.equals(other.pos) && this.lemma.equals(other.lemma);
     }
 
     @Override
     public String toString() {
         return form + "/" + pos + "/" + lemma;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // same object
+        if (!(obj instanceof AnnotatedToken)) return false;
+        AnnotatedToken other = (AnnotatedToken) obj;
+        return equalsSelective(other);
     }
 }
 
