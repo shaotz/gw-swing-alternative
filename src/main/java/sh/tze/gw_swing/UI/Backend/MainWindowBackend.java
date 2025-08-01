@@ -290,6 +290,7 @@ public class MainWindowBackend {
             }
         }
         sb.append("</body></html>");
+
         mwView.getTextDisplayPanel().setText(sb.toString());
     }
     private void presentFiltering(filterScheme fs){
@@ -424,8 +425,28 @@ public class MainWindowBackend {
             if(caseSensitive) sb.append(",case-sensitive");
             return sb.toString();
         }
+
+        public static filterScheme getNullTemplate(){
+            return new filterScheme(false, _filter_range_scheme._reserved, 0, 0, "","","");
+        }
+
+        public boolean isInvalid(){
+            return hasEmptyKey() || hasInvalidRange();
+        }
+        public boolean hasEmptyKey(){
+            return wf.isEmpty() && pos.isEmpty() && lemma.isEmpty();
+        }
+        public boolean hasInvalidRange(){
+            return rs.equals(_filter_range_scheme._reserved);
+        }
+
+
     };
 
+
+    private void recordFilterScheme(List<filterScheme> hist, filterScheme fs){
+        hist.add(fs);
+    }
     public filterScheme obtainFilterScheme(){
         boolean caseSensitive = false;
         _filter_range_scheme rs;
@@ -446,7 +467,7 @@ public class MainWindowBackend {
         String lemma = mwView.getSel_lemma().isSelected() ? mwView.getTf_lemma().getText() : "";
 
         var fs = new filterScheme(caseSensitive,rs,l,r,wf,pos,lemma);
-        currentSchemeHistory.add(fs);
+        recordFilterScheme(currentSchemeHistory,fs);
         return fs;
     }
 
@@ -465,7 +486,10 @@ public class MainWindowBackend {
         }
 
         List<AnnotatedToken> intermediate1 = new ArrayList<>();
-        if((!Objects.equals(fs.wf(), "") || !Objects.equals(fs.lemma(), "") || !Objects.equals(fs.pos(), ""))){
+        //**culprit found** the original return should be a Word of dimension RxR.
+        // this was intended to be a catch-all(equivalent '.*') but i forgot this would make the return now to be RxRxR (of big-enough AnnotatedToken instance)
+        // indeed supernova explosion on the dimension
+        if(!fs.isInvalid()){
             // pass 1 to collect hit from corpus with the highest,
             // also must handle case-specificity here, otherwise words of diff. cases will be collected and contaminate the intermediate set
             if (!fs.wf().isBlank()) {
@@ -493,9 +517,17 @@ public class MainWindowBackend {
                     }
                 }
             } else {
-                return new ArrayList<>();
+                return new ArrayList<>(); //alright i don't know what im thinking
             }
-        }else intermediate1 = nlpres.getWordSentences().stream().flatMap(List::stream).collect(Collectors.toList());
+        }
+        // **solved here**, and also by adding forward validator
+//        else intermediate1 = nlpres.getWordSentences().stream().flatMap(List::stream).collect(Collectors.toList());
+        else {
+            String msg = "Attempt to filter with empty keys.";
+            JOptionPane.showMessageDialog(null, msg , "Empty filter keys", JOptionPane.ERROR_MESSAGE);
+            return new ArrayList<>();
+        }
+
 
         //pass 2 to apply lower precedence keys
         List<AnnotatedToken> intermediate2 = new ArrayList<>();
