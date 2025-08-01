@@ -471,6 +471,7 @@ public class MainWindowBackend {
         return fs;
     }
 
+    //TODO: preserve sentence order in filtered results
     public List<List<SearchResult>> doFilter(FilterScheme fs){
         /*
             precedence seems fine, you have f(g(x)) = g(f(x))
@@ -547,7 +548,7 @@ public class MainWindowBackend {
                     matches = matches && fs.pos().equals(w.getPos());
                 }
 
-                if (matches) {
+                if (matches) { //** more importantly here: feed from intermediate1 must be de-duplicated
                     if(!intermediate2.contains(w))
                         intermediate2.add(w) ;
                 }
@@ -559,8 +560,6 @@ public class MainWindowBackend {
         for(var w : intermediate2){
             List<SearchResult> hits; // hits for a certain AnnotatedToken('w') in whole Corpus w.r.t. its originating sentence
             switch (fs.rs()) {
-                // **Culprit below: These find() family functions are currently matching only with WordForm as criteria.
-                // This would again, duplicate the result, i.e. R -> R^2
                 case whole_sentence:
                     if (fs.caseSensitive()) {
                         hits = nlpres.findCaseSensitive(w);
@@ -583,7 +582,6 @@ public class MainWindowBackend {
             }
         }
 
-        System.err.println("1");
         return hitsOfCurrentCorpus;
 
     }
