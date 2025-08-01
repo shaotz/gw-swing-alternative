@@ -76,6 +76,7 @@ public class MainWindowBackend {
         }
         doConversion();
         present(); // only 10ms. modern microarchitecture. wow.
+        updateURLPaneOnCorpusChange();
         //.setText(corpus) so it doesn't consume the flag. Sounds like working on tensor.data to avoid recording grad_fn  <no more relevant>
     }
     public void onFilterClicked(){
@@ -326,19 +327,12 @@ public class MainWindowBackend {
         isCorpusNewlyInstalled = false;
         return corpus;
     }
-    @Deprecated
-    public void setCorpus(String corpus) {
-        String oldCorpus = this.corpus;
-        this.corpus = corpus;
-        isCorpusNewlyInstalled = true;
-        pcs.firePropertyChange("corpus", oldCorpus, corpus);
-    }
+
     public void setCorpusWithURL(String corpus, String url) {
         String oldCorpus = this.corpus;
         this.corpus = corpus;
         isCorpusNewlyInstalled = true;
         urlHistory.add(url);
-        updateURLPaneOnCorpusChange();
         pcs.firePropertyChange("corpus", oldCorpus, corpus);
     }
 
